@@ -29,7 +29,7 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 // Test uchun localhost.
 // Telegram qoidasi: Mini App URL manzili faqat `https://` bilan boshlanishi MUSTAHKAM talab qilinadi.
 // Hozir bot xato bermasligi uchun vaqtinchalik namuna link qo'yib turamiz:
-const WEB_APP_URL = "https://example.com";
+const WEB_APP_URL = "https://uy-bot-production.up.railway.app";
 
 // -------------------------------------------------------------
 // SCENES (Sahnapar)
