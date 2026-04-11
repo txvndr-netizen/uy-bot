@@ -346,7 +346,7 @@ function getMainMenu() {
     return Markup.keyboard([
         ["📋 Xizmatlarimiz", "💰 Narxlar"],
         ["🛒 Buyurtma berish"],
-        ["📞 Bog'lanish", "🏠 Mini App ochish"]
+        ["📞 Bog'lanish", Markup.button.webApp("🏠 Mini App ochish", WEB_APP_URL)]
     ]).resize();
 }
 
@@ -459,7 +459,7 @@ bot.hears("📞 Bog'lanish", (ctx) => {
 
 bot.hears("🏠 Mini App ochish", (ctx) => {
     ctx.reply(
-        "Mini app ochish uchun tugmani bosing:",
+        "Mini App ni ochish uchun pastdagi klaviaturadagi (qatorlardagi) 🏠 OCHISH tugmasini bosing! Yozuvli tugma orqali ochganda to'lov tizimi ishlamaydi.",
         Markup.inlineKeyboard([
             [Markup.button.webApp("Ochish", WEB_APP_URL)]
         ])
@@ -525,6 +525,60 @@ bot.action("start_order", async (ctx) => {
     ctx.scene.enter("ORDER_WIZARD");
 });
 
+bot.on("web_app_data", async (ctx) => {
+    try {
+        const rawData = ctx.message.web_app_data.data;
+        const parsed = JSON.parse(rawData);
+
+        if (parsed.type === "webapp_order") {
+            const data = loadData();
+            
+            const order = {
+                id: Date.now(),
+                name: parsed.clientName || "",
+                phone: parsed.clientPhone || "",
+                service: `${parsed.item} (${parsed.price})`,
+                user_id: ctx.from.id,
+                created_at: new Date().toISOString()
+            };
+
+            data.orders.push(order);
+            saveData(data);
+
+            await ctx.reply(
+                "🎉 Tabriklaymiz! Buyurtmangiz qabul qilindi. Tez orada mutaxassislarimiz tashkil qilish uchun aloqaga chiqishadi.",
+                getMainMenu()
+            );
+
+            // Adminga xabar yuborish
+            const adminMsg = 
+                `🔥 <b>Mini-App dan Yangi Buyurtma!</b>\n\n` +
+                `👤 Mijoz: ${order.name}\n` +
+                `📞 Raqam: ${order.phone}\n` +
+                `🛠 Tanladi: ${order.service}\n` +
+                `🆔 Litsenziya(User): <a href="tg://user?id=${order.user_id}">${ctx.from.first_name || "Foydalanuvchi"}</a>`;
+            
+            if (process.env.ADMIN_CHAT_ID) {
+                try {
+                    await bot.telegram.sendMessage(process.env.ADMIN_CHAT_ID, adminMsg, { parse_mode: "HTML" });
+                } catch (e) {}
+            }
+
+            for (const adminId of data.admins) {
+                if (String(adminId) !== String(process.env.ADMIN_CHAT_ID)) {
+                    try {
+                        await bot.telegram.sendMessage(adminId, adminMsg, { parse_mode: "HTML" });
+                    } catch (e) {}
+                }
+            }
+        } else if (parsed.type === "order") {
+             // Eski versiya orqaga qarab yozilgan funksiya qolishi uchun... 
+        }
+    } catch(e) {
+        console.error("Web app data parse error: ", e);
+    }
+});
+
 bot.launch();
 console.log("Bot muvaffaqiyatli ishga tushdi / Bot is running!");
 
@@ -536,6 +590,15 @@ const app = express();
 
 // "public" papkasidagi html fayllarni serverga yuklash
 app.use(express.static(path.join(__dirname, "public")));
+
+// Mini App dasturiga ma'lumot jo'natish uchun API
+app.get("/api/data", (req, res) => {
+    const data = loadData();
+    res.json({
+        prices: data.prices || [],
+        services: data.services || []
+    });
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

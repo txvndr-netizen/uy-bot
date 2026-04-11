@@ -1,91 +1,402 @@
 <!DOCTYPE html>
 <html lang="uz">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Uylar katalogi</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ko'chmas Mulk Katalogi</title>
+    <!-- Modern Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body {
+        :root {
+            --bg-color: #F8FAFC;
+            --surface: #FFFFFF;
+            --primary: #2563EB;
+            --primary-dark: #1D4ED8;
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --price: #059669;
+            --border: #E2E8F0;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            --radius-md: 12px;
+            --radius-lg: 20px;
+        }
+
+        * {
+            box-sizing: border-box;
             margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f5f5f5;
-            padding: 16px;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        h1 {
-            margin-bottom: 20px;
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden;
+            background: -webkit-linear-gradient(#fff, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
+        /* Glassmorphism Classes */
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        /* List View */
         .card {
-            background: white;
-            border-radius: 14px;
-            padding: 12px;
-            margin-bottom: 16px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            padding: 16px;
+            margin-bottom: 20px;
+            transition: transform 0.3s ease, background 0.3s ease;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.08);
         }
 
         .card img {
             width: 100%;
-            border-radius: 10px;
+            border-radius: 12px;
             height: 200px;
             object-fit: cover;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            margin-bottom: 12px;
         }
 
         .price {
-            font-size: 24px;
-            font-weight: bold;
-            margin-top: 10px;
+            font-size: 22px;
+            font-weight: 700;
+            color: #38bdf8; /* vibrant light blue */
+            margin-bottom: 8px;
         }
 
         .meta {
-            color: #444;
-            margin-top: 6px;
+            color: #94a3b8;
+            font-size: 14px;
+            margin-bottom: 4px;
+            line-height: 1.4;
         }
 
-        button {
-            margin-top: 12px;
+        /* Detail View */
+        #detailView, #checkoutView {
+            display: none; /* hidden by default */
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        .header-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s ease;
+        }
+
+        .header-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .detail-img {
             width: 100%;
-            padding: 12px;
+            border-radius: 16px;
+            height: 250px;
+            object-fit: cover;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        .detail-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .detail-desc {
+            color: #e2e8f0;
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
             border: none;
-            border-radius: 10px;
-            background: black;
+            border-radius: 12px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
             color: white;
             font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+            transition: opacity 0.2s ease, transform 0.2s ease;
         }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: scale(0.98);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.96);
+        }
+
+        /* Form Inputs */
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.2);
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+            box-sizing: border-box;
+            transition: border-color 0.2s ease;
+        }
+
+        .input-group input:focus {
+            border-color: #38bdf8;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
     </style>
 </head>
 
 <body>
-    <h1>🏠 Uylar katalogi</h1>
 
-    <div class="card">
-        <img src="https://images.unsplash.com/photo-1568605114967-8130f3a36994" alt="Uy">
-        <div class="price">45 000$</div>
-        <div class="meta">3 xonali uy, Samarqand</div>
-        <div class="meta">To‘lov: Naqd / Nasiya</div>
-        <button onclick="sendOrder('3 xonali uy, 45 000$')">So‘rov yuborish</button>
+    <!-- LIST VIEW -->
+    <div id="listView">
+        <h1>🏠 Uylar katalogi</h1>
+        <div id="loading" style="text-align: center; color: #94a3b8; font-size: 14px; margin-top: 20px;">
+            Yuklanmoqda...
+        </div>
+        <div id="realItemsContainer"></div>
     </div>
 
-    <div class="card">
-        <img src="https://images.unsplash.com/photo-1570129477492-45c003edd2be" alt="Kvartira">
-        <div class="price">25 000$</div>
-        <div class="meta">1 xonali kvartira, Samarqand</div>
-        <div class="meta">To‘lov: Naqd / Nasiya</div>
-        <button onclick="sendOrder('1 xonali kvartira, 25 000$')">So‘rov yuborish</button>
+
+    <!-- DETAIL VIEW -->
+    <div id="detailView">
+        <button class="header-btn" onclick="showList()">
+            ← Orqaga
+        </button>
+        <div class="glass" style="padding: 16px;">
+            <img id="detailImg" src="" alt="Uy rasmi" class="detail-img">
+            <div id="detailPrice" class="price"></div>
+            <div id="detailTitle" class="detail-title"></div>
+            <div id="detailDesc" class="detail-desc"></div>
+            <button class="btn-primary" onclick="openCheckout()">Sotib olish / Band qilish</button>
+        </div>
     </div>
+
+
+    <!-- CHECKOUT VIEW -->
+    <div id="checkoutView">
+        <button class="header-btn" onclick="showDetail()">
+            ← Orqaga
+        </button>
+        
+        <div class="glass" style="padding: 20px;">
+            <h2 style="margin-top: 0; font-size: 22px;">Buyurtmani rasmiylashtirish</h2>
+            <p style="color: #94a3b8; font-size: 14px; margin-bottom: 24px;">
+                Iltimos, o'zingiz haqingizda ma'lumot qoldiring. Biz siz bilan tez fursatda bog'lanamiz.
+            </p>
+
+            <div class="input-group">
+                <label for="userName">Ismingiz</label>
+                <input type="text" id="userName" placeholder="Falonchi Pistonchiyev">
+            </div>
+
+            <div class="input-group">
+                <label for="userPhone">Telefon raqamingiz</label>
+                <input type="tel" id="userPhone" placeholder="+998 90 123 45 67">
+            </div>
+
+            <div style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; margin-bottom: 20px;">
+                <p style="margin: 0; font-size: 14px; color: #cbd5e1;">Siz tanladingiz:</p>
+                <p id="checkoutItemName" style="margin: 4px 0 0 0; font-weight: 600;"></p>
+            </div>
+
+            <button class="btn-primary" onclick="submitOrder()">Yuborish 🚀</button>
+        </div>
+    </div>
+
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
+        tg.ready();
 
-        function sendOrder(property) {
-            tg.sendData(JSON.stringify({
-                type: "order",
-                property: property
-            }));
+        let items = {};
+
+        async function loadData() {
+            try {
+                const res = await fetch('/api/data');
+                const pData = await res.json();
+                const container = document.getElementById('realItemsContainer');
+                document.getElementById('loading').style.display = 'none';
+
+                if (!pData.prices || pData.prices.length === 0) {
+                    container.innerHTML = `<div style="text-align:center; color:#94a3b8;">Hozircha xizmatlar yoki uylar qo'shilmagan.</div>`;
+                    return;
+                }
+
+                items = {}; // map by id
+                pData.prices.forEach(priceObj => {
+                    items[priceObj.id] = {
+                        id: priceObj.id,
+                        title: priceObj.text.split('\n')[0].substring(0, 40) + '...', // short title
+                        price: '',
+                        img: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994', // default fallback placeholder
+                        desc: priceObj.text
+                    };
+                    
+                    // Actually, if it's a photo, Telegram API files can only be accessed via Bot API by downloading them.
+                    // For Web App safety, we just show a generic photo or try to parse logic, but without direct links, 
+                    // we stick to generic pictures or you can parse links from text if they exist.
+                    
+                    container.innerHTML += `
+                        <div class="card glass" onclick="openDetail('${priceObj.id}')">
+                            <img src="https://images.unsplash.com/photo-1568605114967-8130f3a36994" alt="Uy">
+                            <div class="price"></div>
+                            <div class="meta" style="font-weight: 600; color: #fff; white-space: pre-line;">${items[priceObj.id].title}</div>
+                            <div class="meta" style="margin-top: 10px; color: #38bdf8;">Batafsil ko'rish ➔</div>
+                        </div>
+                    `;
+                });
+            } catch (err) {
+                console.error(err);
+                document.getElementById('loading').innerText = "Ma'lumot yuklashda xatolik yuz berdi.";
+            }
         }
+        
+        // Auto load
+        loadData();
+
+        const listView = document.getElementById('listView');
+        const detailView = document.getElementById('detailView');
+        const checkoutView = document.getElementById('checkoutView');
+
+        let currentItem = null;
+
+        // Navigation Functions
+        function showList() {
+            detailView.style.display = 'none';
+            checkoutView.style.display = 'none';
+            listView.style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        function openDetail(itemId) {
+            currentItem = items[itemId];
+            if (!currentItem) return;
+
+            // Populate Data
+            document.getElementById('detailImg').src = currentItem.img;
+            document.getElementById('detailPrice').innerText = currentItem.price;
+            document.getElementById('detailTitle').innerText = currentItem.title;
+            document.getElementById('detailDesc').innerText = currentItem.desc;
+
+            // Switch views
+            listView.style.display = 'none';
+            checkoutView.style.display = 'none';
+            detailView.style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        function openCheckout() {
+            if (!currentItem) return;
+            document.getElementById('checkoutItemName').innerText = `${currentItem.title} (${currentItem.price})`;
+            
+            // Auto fill info from TG User if available
+            try {
+                if (window.Telegram && window.Telegram.WebApp && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                    const user = tg.initDataUnsafe.user;
+                    const nameInput = document.getElementById('userName');
+                    if(!nameInput.value) {
+                        nameInput.value = `${user.first_name || ""} ${user.last_name || ""}`.trim();
+                    }
+                }
+            } catch(e) {
+                console.error(e);
+            }
+
+            detailView.style.display = 'none';
+            checkoutView.style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        function showDetail() {
+            checkoutView.style.display = 'none';
+            detailView.style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        function submitOrder() {
+            const name = document.getElementById('userName').value.trim();
+            const phone = document.getElementById('userPhone').value.trim();
+
+            if (!name || !phone) {
+                if(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showAlert) {
+                    tg.showAlert("Iltimos, ismingiz va telefon raqamingizni kiriting.");
+                } else {
+                    alert("Iltimos, ismingiz va telefon raqamingizni kiriting.");
+                }
+                return;
+            }
+
+            const orderData = {
+                type: "webapp_order",
+                item: currentItem.title,
+                price: currentItem.price,
+                clientName: name,
+                clientPhone: phone
+            };
+
+            // Send payload to the bot
+            try {
+                tg.sendData(JSON.stringify(orderData));
+            } catch(e) {
+                if(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showAlert) {
+                    tg.showAlert("Xatolik! Agar App ni tugmasini bosib ochgan bo'lsangiz, iltimos pastdagi 'Mini App' asosiy klaviatura tugmasi orqali oching (Inline rejim xaridni qabul qilmaydi).");
+                } else {
+                    alert("Xatolik yuz berdi. Iltimos Mini App ni bot klaviaturasidan oching.");
+                }
+            }
+        }
+
     </script>
 </body>
 
