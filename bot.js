@@ -579,8 +579,11 @@ bot.on("web_app_data", async (ctx) => {
     }
 });
 
-bot.launch();
-console.log("Bot muvaffaqiyatli ishga tushdi / Bot is running!");
+bot.launch().then(() => {
+    console.log("Bot muvaffaqiyatli ishga tushdi / Bot is running!");
+}).catch(err => {
+    console.error("Botni ishga tushirishda xato yuz berdi:", err);
+});
 
 // -------------------------------------------------------------
 // EXPRESS SERVER (Mini App HTML uchun)
@@ -601,8 +604,8 @@ app.get("/api/data", (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Mini app serveri http://localhost:${PORT} da ishlamoqda.`);
+app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Mini app serveri ${PORT} portida (0.0.0.0) ishlamoqda.`);
 });
 
 // Enable graceful stop
