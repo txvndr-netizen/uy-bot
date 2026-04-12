@@ -3,291 +3,306 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ko'chmas Mulk Katalogi</title>
+    <title>Premium Uy-Joy</title>
     <!-- Modern Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #0f172a;
-            --surface: #1e293b;
-            --primary: #3b82f6;
-            --primary-dark: #2563eb;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
+            --bg-color: #f1f5f9;
+            --surface: #ffffff;
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary: #0f172a;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
             --price: #10b981;
-            --border: #334155;
-            --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
-            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.4), 0 2px 4px -1px rgba(0,0,0,0.2);
-            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.5), 0 4px 6px -2px rgba(0,0,0,0.25);
+            --danger: #ef4444;
+            --border: #e2e8f0;
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
             --radius-md: 12px;
             --radius-lg: 20px;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            -webkit-tap-highlight-color: transparent;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
             overflow-x: hidden;
+            padding-top: 60px; /* Space for fixed header */
         }
 
-        /* Glassmorphism Classes */
-        .glass {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        /* HEADER */
+        .app-header {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 60px;
+            background: var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            z-index: 1000;
         }
 
-        /* List View */
+        .header-btn-icon {
+            background: none; border: none; font-size: 24px; color: var(--secondary); cursor: pointer;
+            width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%;
+            transition: background 0.2s;
+        }
+        .header-btn-icon:active { background: #f1f5f9; }
+        
+        .header-title { font-size: 18px; font-weight: 700; color: var(--secondary); }
+
+        /* SIDEBAR (DRAWER) */
+        .sidebar {
+            position: fixed; top: 0; left: -300px; width: 280px; height: 100vh;
+            background: var(--surface); box-shadow: var(--shadow-lg); z-index: 2000;
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; flex-direction: column;
+        }
+
+        .sidebar.open { left: 0; }
+
+        .sidebar-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(15, 23, 42, 0.5); z-index: 1500;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+
+        .sidebar-overlay.open { opacity: 1; pointer-events: all; }
+
+        .sidebar-header {
+            padding: 30px 20px 20px; background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white; border-bottom: 1px solid var(--border);
+        }
+
+        .profile-avatar {
+            width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; font-weight: 700; margin-bottom: 12px;
+        }
+
+        .profile-name { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+        .profile-id { font-size: 12px; opacity: 0.8; }
+
+        .sidebar-content { padding: 10px 0; overflow-y: auto; flex-grow: 1; }
+
+        .menu-category {
+            font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;
+            padding: 16px 20px 8px; letter-spacing: 0.5px;
+        }
+
+        .menu-item {
+            padding: 14px 20px; font-size: 15px; font-weight: 500; color: var(--text-main);
+            display: flex; align-items: center; gap: 12px; cursor: pointer; transition: background 0.2s;
+        }
+
+        .menu-item:active { background: #f8fafc; }
+        .menu-item svg { width: 20px; height: 20px; fill: var(--text-muted); }
+
+        /* LIST VIEW */
+        .page-container { padding: 16px; animation: fadeIn 0.3s ease; }
+
         .card {
-            padding: 16px;
-            margin-bottom: 20px;
-            transition: transform 0.3s ease, background 0.3s ease;
-            cursor: pointer;
+            background: var(--surface); border-radius: 16px; padding: 14px; margin-bottom: 16px;
+            box-shadow: var(--shadow-md); transition: transform 0.2s ease; cursor: pointer;
         }
 
-        .card:hover {
-            transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.08);
-        }
+        .card:active { transform: scale(0.98); }
 
         .card img {
-            width: 100%;
-            border-radius: 12px;
-            height: 200px;
-            object-fit: cover;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            margin-bottom: 12px;
+            width: 100%; height: 200px; object-fit: cover; border-radius: 12px; margin-bottom: 12px;
+            background-color: #e2e8f0;
         }
 
-        .price {
-            font-size: 22px;
-            font-weight: 700;
-            color: #38bdf8; /* vibrant light blue */
-            margin-bottom: 8px;
+        .price-tag { font-size: 18px; font-weight: 800; color: var(--primary); margin-bottom: 6px; }
+        .title-text { font-size: 14px; color: var(--text-main); font-weight: 600; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;}
+        
+        .badge {
+            position: absolute; top: 10px; right: 10px; background: var(--danger); color: white;
+            padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 800; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
-        .meta {
-            color: #94a3b8;
-            font-size: 14px;
-            margin-bottom: 4px;
-            line-height: 1.4;
-        }
-
-        /* Detail View */
-        #detailView, #checkoutView {
-            display: none; /* hidden by default */
-            animation: fadeIn 0.4s ease forwards;
-        }
-
-        .header-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            cursor: pointer;
-            margin-bottom: 20px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: background 0.2s ease;
-        }
-
-        .header-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .detail-img {
-            width: 100%;
-            border-radius: 16px;
-            height: 250px;
-            object-fit: cover;
-            margin-bottom: 20px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-        }
-
-        .detail-title {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-
-        .detail-desc {
-            color: #e2e8f0;
-            font-size: 15px;
-            line-height: 1.6;
-            margin-bottom: 24px;
-        }
-
-        /* Buttons */
+        /* BUTTONS */
         .btn-primary {
-            width: 100%;
-            padding: 16px;
-            border: none;
-            border-radius: 12px;
-            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-            color: white;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
-            transition: opacity 0.2s ease, transform 0.2s ease;
+            width: 100%; padding: 16px; border: none; border-radius: 12px;
+            background: var(--primary); color: white; font-size: 16px; font-weight: 700;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3); cursor: pointer; transition: opacity 0.2s;
+        }
+        .btn-primary:active { opacity: 0.8; }
+        .btn-outline {
+            width: 100%; padding: 14px; border: 2px solid var(--border); border-radius: 12px;
+            background: transparent; color: var(--text-main); font-size: 15px; font-weight: 600; cursor: pointer;
         }
 
-        .btn-primary:hover {
-            opacity: 0.9;
-            transform: scale(0.98);
+        /* INPUTS */
+        .input-group { margin-bottom: 16px; }
+        .input-group label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: var(--text-muted); }
+        .input-group input, .input-group textarea {
+            width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--border);
+            background: var(--surface); color: var(--text-main); font-size: 15px; outline: none; transition: border 0.2s;
+        }
+        .input-group input:focus, .input-group textarea:focus { border-color: var(--primary); }
+
+        /* VIEWS */
+        #detailView, #addView, #checkoutView { display: none; }
+
+        .back-nav {
+            display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600;
+            color: var(--primary); padding: 8px 0; margin-bottom: 16px; cursor: pointer;
         }
 
-        .btn-primary:active {
-            transform: scale(0.96);
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Form Inputs */
-        .input-group {
-            margin-bottom: 16px;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
-            color: #94a3b8;
-        }
-
-        .input-group input {
-            width: 100%;
-            padding: 14px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(0, 0, 0, 0.2);
-            color: #fff;
-            font-size: 16px;
-            outline: none;
-            box-sizing: border-box;
-            transition: border-color 0.2s ease;
-        }
-
-        .input-group input:focus {
-            border-color: #38bdf8;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
+        /* Loader */
+        .loader { text-align: center; color: var(--text-muted); padding: 40px; font-size: 14px; font-weight: 500; }
     </style>
 </head>
-
 <body>
 
-    <!-- LIST VIEW -->
-    <div id="listView">
-        <h1>🏠 Uylar katalogi</h1>
-        <div id="loading" style="text-align: center; color: #94a3b8; font-size: 14px; margin-top: 20px;">
-            Yuklanmoqda...
+    <!-- HEADER -->
+    <div class="app-header">
+        <button class="header-btn-icon" onclick="toggleSidebar()">
+            <!-- Hamburger Icon -->
+            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+        <div class="header-title" id="topHeaderTitle">Katalog</div>
+        <div style="width: 40px;"></div> <!-- Place-holder for balance -->
+    </div>
+
+    <!-- SIDEBAR OVERLAY & MENU -->
+    <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+    <div id="sidebarMenu" class="sidebar">
+        <div class="sidebar-header">
+            <div class="profile-avatar" id="avatarInitial">U</div>
+            <div class="profile-name" id="userNameTxt">Mehmon</div>
+            <div class="profile-id" id="userIdTxt">Telegramga ulanilmagan</div>
         </div>
+        <div class="sidebar-content">
+            <div class="menu-category">Asosiy Menu</div>
+            <div class="menu-item" onclick="navigate('listView'); toggleSidebar()">
+                🏠 Barcha Uylar
+            </div>
+            <div class="menu-item" onclick="toggleSidebar(); alert('Tez kunda ishga tushadi!')">
+                ❤ Sevimlilar
+            </div>
+            <div class="menu-item" onclick="toggleSidebar(); tg.close();">
+                📞 Botga qaytish
+            </div>
+
+            <!-- ADMIN SECTION (Hidden by default) -->
+            <div id="adminMenuSection" style="display:none;">
+                <div class="menu-category" style="color:var(--danger); margin-top:10px;">🛡 Admin Panel</div>
+                <div class="menu-item" onclick="navigate('addView'); toggleSidebar();" style="color:var(--primary); font-weight:700;">
+                    ➕ Yangi E'lon Qo'shish
+                </div>
+                <div class="menu-item" onclick="toggleSidebar(); alert('Statistika tayyorlanmoqda...');">
+                    📊 Statistika
+                </div>
+            </div>
+        </div>
+        <div style="padding: 20px; font-size: 11px; text-align: center; color: var(--text-muted);">
+            Versiya 2.0 • Premium Dizayn
+        </div>
+    </div>
+
+
+    <!-- 1. LIST VIEW -->
+    <div id="listView" class="page-container">
+        <div id="loading" class="loader">Uylar yuklanmoqda...</div>
         <div id="realItemsContainer"></div>
-
-        <button id="adminAddBtn" class="header-btn" style="display:none; position:fixed; bottom:20px; right:20px; z-index:99; background: var(--price); border-radius: 50px; font-weight:bold; box-shadow: 0 4px 10px rgba(0,0,0,0.5);" onclick="showAddView()">
-            ➕ Yangi Qo'shish
-        </button>
-    </div>
-
-
-    <!-- DETAIL VIEW -->
-    <div id="detailView">
-        <button class="header-btn" onclick="showList()">
-            ← Orqaga
-        </button>
-        <div class="glass" style="padding: 16px;">
-            <img id="detailImg" src="" alt="Uy rasmi" class="detail-img" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1568605114967-8130f3a36994';">
-            <div id="detailPrice" class="price"></div>
-            <div id="detailTitle" class="detail-title"></div>
-            <div id="detailDesc" class="detail-desc"></div>
-            <button id="detailBuyBtn" class="btn-primary" onclick="openCheckout()">Sotib olish / Band qilish</button>
-
-            <div id="adminDetailActions" style="display:none; margin-top:20px; display:flex; flex-direction:column; gap:10px;">
-                <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin: 10px 0;">
-                <p style="color:#94a3b8; font-size:12px; text-align:center;">Admin Boshqaruvi</p>
-                <button class="btn-primary" style="background:#10b981;" onclick="markAsSold()">✅ "Sotildi" qilish</button>
-                <button class="btn-primary" style="background:#ef4444;" onclick="deleteItem()">🗑 O'chirish</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ADD VIEW -->
-    <div id="addView" style="display:none; animation: fadeIn 0.4s ease forwards;">
-        <button class="header-btn" onclick="showList()">
-            ← Orqaga
-        </button>
-        
-        <div class="glass" style="padding: 20px;">
-            <h2 style="margin-top: 0; font-size: 22px;">Yangi E'lon Qo'shish</h2>
-            <p style="color: #94a3b8; font-size: 14px; margin-bottom: 24px;">Bu joydan adminlar to'g'ridan-to'g'ri yangi uy qo'sha oladi.</p>
-
-            <div class="input-group">
-                <label for="addImg">Rasm Manzili URL (Ixtiyoriy)</label>
-                <input type="text" id="addImg" placeholder="https://...jpg">
-            </div>
-
-            <div class="input-group">
-                <label for="addText">Narxi va to'liq ma'lumoti</label>
-                <textarea id="addText" style="width: 100%; padding: 14px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.2); background: rgba(0, 0, 0, 0.2); color: #fff; font-size: 16px; outline: none; margin-bottom: 20px;" rows="5" placeholder="Narxi: 50.000 so'm&#10;Manzil: Toshkent / Yunusobod&#10;Xonalar: 3 ta"></textarea>
-            </div>
-
-            <button class="btn-primary" onclick="submitNewItem()">Bazasiga Qo'shish 📥</button>
+        <div id="appFooter" style="text-align:center; font-size:13px; color:var(--text-muted); margin-top:30px;">
+            <div id="footerPhone"></div>
+            <div id="footerAddress"></div>
         </div>
     </div>
 
 
-    <!-- CHECKOUT VIEW -->
-    <div id="checkoutView">
-        <button class="header-btn" onclick="showDetail()">
+    <!-- 2. DETAIL VIEW -->
+    <div id="detailView" class="page-container">
+        <div class="back-nav" onclick="navigate('listView')">
             ← Orqaga
-        </button>
+        </div>
         
-        <div class="glass" style="padding: 20px;">
-            <h2 style="margin-top: 0; font-size: 22px;">Buyurtmani rasmiylashtirish</h2>
-            <p style="color: #94a3b8; font-size: 14px; margin-bottom: 24px;">
-                Iltimos, o'zingiz haqingizda ma'lumot qoldiring. Biz siz bilan tez fursatda bog'lanamiz.
-            </p>
+        <div style="background:var(--surface); border-radius:16px; overflow:hidden; box-shadow:var(--shadow-md);">
+            <img id="detailImg" src="" style="width:100%; height:280px; object-fit:cover; display:block;" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1568605114967-8130f3a36994';">
+            
+            <div style="padding: 20px;">
+                <div id="detailPrice" class="price-tag" style="font-size:24px;"></div>
+                <div id="detailTitle" style="font-size:16px; font-weight:600; color:var(--text-main); margin-bottom:16px;"></div>
+                <div id="detailDesc" style="font-size:14px; color:var(--text-muted); line-height:1.6; margin-bottom:24px;"></div>
+                
+                <button id="detailBuyBtn" class="btn-primary" onclick="openCheckout()">Sotib olish / Band qilish</button>
+            </div>
+        </div>
+
+        <!-- ADMIN CONTROLS IN DETAILS (Hidden by default) -->
+        <div id="adminDetailActions" style="display:none; background:var(--surface); padding:20px; border-radius:16px; margin-top:20px; box-shadow:var(--shadow-md);">
+            <div style="font-size:13px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:16px; text-align:center;">🛡 Admin Boshqaruvi</div>
+            <div style="display:flex; gap:10px;">
+                <button style="flex:1; background:var(--price); padding:14px; color:white; border:none; border-radius:10px; font-weight:700;" onclick="markAsSold()">✅ Sotildi</button>
+                <button style="flex:1; background:var(--danger); padding:14px; color:white; border:none; border-radius:10px; font-weight:700;" onclick="deleteItem()">🗑 O'chirish</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 3. ADD PROPERTY VIEW -->
+    <div id="addView" class="page-container">
+        <div class="back-nav" onclick="navigate('listView')">
+            ← Orqaga
+        </div>
+        
+        <div style="background:var(--surface); padding:24px; border-radius:16px; box-shadow:var(--shadow-md);">
+            <h2 style="font-size:20px; margin-bottom:8px;">Yangi Uy Qo'shish</h2>
+            <p style="font-size:13px; color:var(--text-muted); margin-bottom:24px;">Admin paneli orqali ijaraga yoki sotuvga uy qo'shish formasi.</p>
 
             <div class="input-group">
-                <label for="userName">Ismingiz</label>
-                <input type="text" id="userName" placeholder="Falonchi Pistonchiyev">
+                <label>Rasm manzili (URL link)</label>
+                <input type="text" id="addImg" placeholder="https://....jpg ixtiyoriy">
             </div>
 
             <div class="input-group">
-                <label for="userPhone">Telefon raqamingiz</label>
+                <label>Narxi va to'liq ma'lumot</label>
+                <textarea id="addText" rows="6" placeholder="Narxi: 50,000$&#10;Manzil: Toshkent&#10;Xonalar: 3 ta"></textarea>
+            </div>
+
+            <button class="btn-primary" onclick="submitNewItem()">Boshqaruv Bazasiga Qo'shish</button>
+        </div>
+    </div>
+
+
+    <!-- 4. CHECKOUT VIEW -->
+    <div id="checkoutView" class="page-container">
+        <div class="back-nav" onclick="navigate('detailView')">
+            ← Orqaga
+        </div>
+        
+        <div style="background:var(--surface); padding:24px; border-radius:16px; box-shadow:var(--shadow-md);">
+            <h2 style="font-size:20px; margin-bottom:8px;">Buyurtmani Rasmiylashtirish</h2>
+            <p style="font-size:13px; color:var(--text-muted); margin-bottom:24px;">Iltimos ma'lumotlaringizni to'ldiring. Mutaxassislar aloqaga chiqadi.</p>
+
+            <div class="input-group">
+                <label>Ismingiz</label>
+                <input type="text" id="userName" placeholder="Falonchi">
+            </div>
+
+            <div class="input-group">
+                <label>Telefon raqam</label>
                 <input type="tel" id="userPhone" placeholder="+998 90 123 45 67">
             </div>
 
-            <div style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; margin-bottom: 20px;">
-                <p style="margin: 0; font-size: 14px; color: #cbd5e1;">Siz tanladingiz:</p>
-                <p id="checkoutItemName" style="margin: 4px 0 0 0; font-weight: 600;"></p>
+            <div style="background:#f1f5f9; padding:16px; border-radius:12px; margin-bottom:24px; border:1px solid var(--border);">
+                <div style="font-size:12px; color:var(--text-muted);">Siz tanladingiz:</div>
+                <div id="checkoutItemName" style="font-size:14px; font-weight:700; margin-top:4px;"></div>
             </div>
 
-            <button id="checkoutSubmitBtn" class="btn-primary" onclick="submitOrder()">Yuborish 🚀</button>
+            <button class="btn-primary" onclick="submitOrder()">Yuborish 🚀</button>
         </div>
-    </div>
-    
-    <!-- FOOTER -->
-    <div id="appFooter" style="text-align: center; margin-top: 30px; margin-bottom: 20px; font-size: 13px; color: var(--text-muted);">
-        <div id="footerPhone"></div>
-        <div id="footerAddress"></div>
     </div>
 
 
@@ -299,178 +314,131 @@
 
         let items = {};
         let isAdmin = false;
-        let tgUserId = null;
+        let tgUser = null;
 
+        // Initialize User Profile in Sidebar
         try {
             if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-                tgUserId = tg.initDataUnsafe.user.id;
+                tgUser = tg.initDataUnsafe.user;
+                document.getElementById('userNameTxt').innerText = `${tgUser.first_name || ""} ${tgUser.last_name || ""}`.trim() || "Foydalanuvchi";
+                document.getElementById('userIdTxt').innerText = `ID: ${tgUser.id}`;
+                document.getElementById('avatarInitial').innerText = (tgUser.first_name ? tgUser.first_name.charAt(0) : "U").toUpperCase();
             }
         } catch(e) {}
 
+        // Sidebar Toggle
+        function toggleSidebar() {
+            document.getElementById('sidebarMenu').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('open');
+        }
+
+        // View Navigator
+        function navigate(viewId) {
+            ['listView', 'detailView', 'addView', 'checkoutView'].forEach(id => {
+                document.getElementById(id).style.display = (id === viewId) ? 'block' : 'none';
+            });
+            window.scrollTo(0,0);
+        }
+
         async function loadData() {
             try {
-                if (tgUserId) {
+                // Check Admin
+                if (tgUser) {
                     const chk = await fetch('/api/check-admin', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ userId: tgUserId })
+                        body: JSON.stringify({ userId: tgUser.id })
                     });
                     const adRes = await chk.json();
                     isAdmin = adRes.isAdmin;
                     if (isAdmin) {
-                        document.getElementById('adminAddBtn').style.display = 'block';
+                        document.getElementById('adminMenuSection').style.display = 'block';
                     }
                 }
 
+                // Load Data
                 const res = await fetch('/api/data');
                 const pData = await res.json();
                 const container = document.getElementById('realItemsContainer');
                 document.getElementById('loading').style.display = 'none';
 
                 if (!pData.prices || pData.prices.length === 0) {
-                    container.innerHTML = `<div style="text-align:center; color:#94a3b8;">Hozircha xizmatlar yoki uylar qo'shilmagan.</div>`;
-                    // return; (we still want to process settings even if empty)
+                    container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:40px 0;">Hozircha xizmatlar yoki uylar qo'shilmagan.</div>`;
                 }
 
-                // Global Sozlamalar
-                const settings = pData.settings || {};
-                const appImage = settings.app_image || 'https://images.unsplash.com/photo-1568605114967-8130f3a36994';
-                const appPhone = settings.app_phone;
-                const appAddress = settings.app_address;
-                const appButtonText = settings.app_button_text || 'Sotib olish / Band qilish';
+                const s = pData.settings || {};
+                const defImg = s.app_image || 'https://images.unsplash.com/photo-1568605114967-8130f3a36994';
                 
-                // Update UI based on settings
-                if (appPhone) {
-                    document.getElementById('footerPhone').innerText = '📞 ' + appPhone;
-                }
-                if (appAddress) {
-                    document.getElementById('footerAddress').innerText = '📍 ' + appAddress;
-                }
-                document.getElementById('detailBuyBtn').innerText = appButtonText;
+                if (s.app_phone) document.getElementById('footerPhone').innerText = '📞 ' + s.app_phone;
+                if (s.app_address) document.getElementById('footerAddress').innerText = '📍 ' + s.app_address;
+                document.getElementById('detailBuyBtn').innerText = s.app_button_text || 'Sotib olish / Band qilish';
 
-                items = {}; // map by id
+                items = {}; 
                 if (pData.prices) {
-                    pData.prices.forEach(priceObj => {
-                        let finalImg = priceObj.customImgUrl || appImage;
+                    pData.prices.forEach(p => {
+                        let fImg = p.customImgUrl || defImg;
                         
-                        items[priceObj.id] = {
-                            id: priceObj.id,
-                            title: priceObj.text.split('\n')[0].substring(0, 40) + '...', // short title
-                            price: '',
-                            img: finalImg, 
-                            desc: priceObj.text,
-                            isSold: !!priceObj.isSold
+                        items[p.id] = {
+                            id: p.id,
+                            title: p.text.split('\n')[0].substring(0, 50), 
+                            price: '', 
+                            img: fImg, 
+                            desc: p.text,
+                            isSold: !!p.isSold
                         };
 
-                        let soldBadge = priceObj.isSold ? `<div style="position:absolute; top:10px; right:10px; background:#ef4444; color:white; padding:6px 10px; border-radius:8px; font-weight:800; font-size:12px; z-index:10; box-shadow: 0 2px 4px rgba(0,0,0,0.5);">SOTILDI ✅</div>` : '';
-                        let opacityStyle = priceObj.isSold ? 'opacity: 0.6;' : '';
+                        let badge = p.isSold ? `<div class="badge">SOTILDI ✅</div>` : '';
+                        let opacity = p.isSold ? 'opacity: 0.6;' : '';
 
                         container.innerHTML += `
-                            <div class="card glass" onclick="openDetail('${priceObj.id}')" style="${opacityStyle}">
+                            <div class="card" onclick="openDetail('${p.id}')" style="${opacity}">
                                 <div style="position:relative;">
-                                    ${soldBadge}
-                                    <img src="${finalImg}" alt="Uy" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1568605114967-8130f3a36994';">
+                                    ${badge}
+                                    <img src="${fImg}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1568605114967-8130f3a36994';">
                                 </div>
-                                <div class="price"></div>
-                                <div class="meta" style="font-weight: 600; color: #fff; white-space: pre-line;">${items[priceObj.id].title}</div>
-                                <div class="meta" style="margin-top: 10px; color: #38bdf8;">Batafsil ko'rish ➔</div>
+                                <div class="title-text">${items[p.id].title}</div>
                             </div>
                         `;
                     });
                 }
             } catch (err) {
                 console.error(err);
-                document.getElementById('loading').innerText = "Ma'lumot yuklashda xatolik yuz berdi.";
+                document.getElementById('loading').innerText = "Oflayn xatolik yuz berdi.";
             }
         }
         
-        // Auto load
         loadData();
 
-        const listView = document.getElementById('listView');
-        const detailView = document.getElementById('detailView');
-        const checkoutView = document.getElementById('checkoutView');
-        const addView = document.getElementById('addView');
-
         let currentItem = null;
-
-        // Navigation Functions
-        function showList() {
-            detailView.style.display = 'none';
-            checkoutView.style.display = 'none';
-            addView.style.display = 'none';
-            listView.style.display = 'block';
-            window.scrollTo(0, 0);
-        }
-
-        function showAddView() {
-            listView.style.display = 'none';
-            detailView.style.display = 'none';
-            checkoutView.style.display = 'none';
-            addView.style.display = 'block';
-            window.scrollTo(0, 0);
-        }
 
         function openDetail(itemId) {
             currentItem = items[itemId];
             if (!currentItem) return;
 
-            // Populate Data
             document.getElementById('detailImg').src = currentItem.img;
-            document.getElementById('detailPrice').innerText = currentItem.price;
             document.getElementById('detailTitle').innerText = currentItem.title;
             
             let descHtml = currentItem.desc;
             if (currentItem.isSold) {
-                descHtml = "<b><span style='color:#ef4444'>BU OBYEKT SOTILGAN</span></b><br><br>" + descHtml;
+                descHtml = "<span style='color:var(--danger); font-weight:700;'>BU OBYEKT SOTILGAN</span><br><br>" + descHtml;
                 document.getElementById('detailBuyBtn').style.display = 'none';
             } else {
                 document.getElementById('detailBuyBtn').style.display = 'block';
             }
             document.getElementById('detailDesc').innerHTML = descHtml.replace(/\n/g, "<br>");
 
-            // Amin Actions
-            const acts = document.getElementById('adminDetailActions');
-            if (isAdmin) {
-                acts.style.display = 'flex';
-            } else {
-                acts.style.display = 'none';
-            }
-
-            // Switch views
-            listView.style.display = 'none';
-            checkoutView.style.display = 'none';
-            addView.style.display = 'none';
-            detailView.style.display = 'block';
-            window.scrollTo(0, 0);
+            document.getElementById('adminDetailActions').style.display = isAdmin ? 'block' : 'none';
+            
+            navigate('detailView');
         }
 
         function openCheckout() {
             if (!currentItem) return;
-            document.getElementById('checkoutItemName').innerText = `${currentItem.title} (${currentItem.price})`;
-            
-            // Auto fill info from TG User if available
-            try {
-                if (window.Telegram && window.Telegram.WebApp && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-                    const user = tg.initDataUnsafe.user;
-                    const nameInput = document.getElementById('userName');
-                    if(!nameInput.value) {
-                        nameInput.value = `${user.first_name || ""} ${user.last_name || ""}`.trim();
-                    }
-                }
-            } catch(e) {
-                console.error(e);
+            document.getElementById('checkoutItemName').innerText = `${currentItem.title}`;
+            if(tgUser && !document.getElementById('userName').value) {
+                document.getElementById('userName').value = `${tgUser.first_name||""} ${tgUser.last_name||""}`.trim();
             }
-
-            detailView.style.display = 'none';
-            checkoutView.style.display = 'block';
-            window.scrollTo(0, 0);
-        }
-
-        function showDetail() {
-            checkoutView.style.display = 'none';
-            detailView.style.display = 'block';
-            window.scrollTo(0, 0);
+            navigate('checkoutView');
         }
 
         function submitOrder() {
@@ -478,82 +446,56 @@
             const phone = document.getElementById('userPhone').value.trim();
 
             if (!name || !phone) {
-                if(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showAlert) {
-                    tg.showAlert("Iltimos, ismingiz va telefon raqamingizni kiriting.");
-                } else {
-                    alert("Iltimos, ismingiz va telefon raqamingizni kiriting.");
-                }
-                return;
+                return (tg.showAlert ? tg.showAlert("Ismingiz va raqamingiz bo'sh qolmasin!") : alert("Ism/raqam majburiy"));
             }
 
-            const orderData = {
-                type: "webapp_order",
-                item: currentItem.title,
-                price: currentItem.price,
-                clientName: name,
-                clientPhone: phone
-            };
-
-            // Send payload to the bot
+            const payload = { type: "webapp_order", item: currentItem.title, price: currentItem.price, clientName: name, clientPhone: phone };
             try {
-                tg.sendData(JSON.stringify(orderData));
+                tg.sendData(JSON.stringify(payload));
             } catch(e) {
-                if(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showAlert) {
-                    tg.showAlert("Xatolik! Agar App ni tugmasini bosib ochgan bo'lsangiz, iltimos pastdagi 'Mini App' asosiy klaviatura tugmasi orqali oching (Inline rejim xaridni qabul qilmaydi).");
-                } else {
-                    alert("Xatolik yuz berdi. Iltimos Mini App ni bot klaviaturasidan oching.");
-                }
+                (tg.showAlert ? tg.showAlert("Botga ma'lumot yuborilmadi. Miniappni bot klaviaturasidagi pastki tugmadan ochishingiz kerak.") : alert("Xatolik"));
             }
         }
 
+        // ADMIN API CALLS
         async function submitNewItem() {
             const txt = document.getElementById('addText').value;
             const img = document.getElementById('addImg').value;
-            if(!txt) {
-                return (tg.showAlert ? tg.showAlert("Ma'lumotni kiritish majburiy!") : alert("Ma'lumot majburiy!"));
-            }
+            if(!txt) return (tg.showAlert ? tg.showAlert("Ma'lumot kiriting!") : alert("Xato"));
             
             try {
                 const req = await fetch('/api/prices', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId: tgUserId, text: txt, customImgUrl: img, type: "photo" })
+                    body: JSON.stringify({ userId: tgUser?.id, text: txt, customImgUrl: img, type: "photo" })
                 });
                 const res = await req.json();
                 if(res.success) {
-                    (tg.showAlert ? tg.showAlert("Muvaffaqiyatli qo'shildi!") : alert("Qo'shildi"));
+                    if(tg.showAlert) tg.showAlert("Muvaffaqiyatli qo'shildi!");
                     location.reload();
-                } else {
-                    (tg.showAlert ? tg.showAlert("Siz admin emassiz!") : alert("Siz admin emassiz!"));
-                }
-            } catch(e) { 
-                alert("Xatolik:" + e.message); 
-            }
+                } else alert("Ruxsat etilmadi!");
+            } catch(e) { alert("Server xatosi: " + e.message); }
         }
 
         async function deleteItem() {
-            if(!confirm("Buni butunlay o'chirib yuborasizmi?")) return;
+            if(!confirm("Buni butunlay o'chirasizmi?")) return;
             try {
                 await fetch('/api/prices/' + currentItem.id, { method: 'DELETE' });
-                if(tg.showAlert) tg.showAlert("O'chirildi!");
                 location.reload();
-            } catch(e) { alert("Xatolik:" + e.message); }
+            } catch(e) { alert("Xatolik"); }
         }
 
         async function markAsSold() {
-            if(!confirm("Haqiqatan ham 'Sotildi' qilmoqchimisiz?")) return;
+            if(!confirm("Sotildi qilasizmi?")) return;
             try {
                 await fetch('/api/prices/' + currentItem.id, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ isSold: true })
                 });
-                if(tg.showAlert) tg.showAlert("Belgilandi!");
                 location.reload();
-            } catch(e) { alert("Xatolik:" + e.message); }
+            } catch(e) { alert("Xatolik"); }
         }
-
     </script>
 </body>
-
 </html>
