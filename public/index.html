@@ -216,7 +216,7 @@
             <div id="detailPrice" class="price"></div>
             <div id="detailTitle" class="detail-title"></div>
             <div id="detailDesc" class="detail-desc"></div>
-            <button class="btn-primary" onclick="openCheckout()">Sotib olish / Band qilish</button>
+            <button id="detailBuyBtn" class="btn-primary" onclick="openCheckout()">Sotib olish / Band qilish</button>
         </div>
     </div>
 
@@ -248,8 +248,14 @@
                 <p id="checkoutItemName" style="margin: 4px 0 0 0; font-weight: 600;"></p>
             </div>
 
-            <button class="btn-primary" onclick="submitOrder()">Yuborish 🚀</button>
+            <button id="checkoutSubmitBtn" class="btn-primary" onclick="submitOrder()">Yuborish 🚀</button>
         </div>
+    </div>
+    
+    <!-- FOOTER -->
+    <div id="appFooter" style="text-align: center; margin-top: 30px; margin-bottom: 20px; font-size: 13px; color: var(--text-muted);">
+        <div id="footerPhone"></div>
+        <div id="footerAddress"></div>
     </div>
 
 
@@ -270,32 +276,46 @@
 
                 if (!pData.prices || pData.prices.length === 0) {
                     container.innerHTML = `<div style="text-align:center; color:#94a3b8;">Hozircha xizmatlar yoki uylar qo'shilmagan.</div>`;
-                    return;
+                    // return; (we still want to process settings even if empty)
                 }
 
+                // Global Sozlamalar
+                const settings = pData.settings || {};
+                const appImage = settings.app_image || 'https://images.unsplash.com/photo-1568605114967-8130f3a36994';
+                const appPhone = settings.app_phone;
+                const appAddress = settings.app_address;
+                const appButtonText = settings.app_button_text || 'Sotib olish / Band qilish';
+                
+                // Update UI based on settings
+                if (appPhone) {
+                    document.getElementById('footerPhone').innerText = '📞 ' + appPhone;
+                }
+                if (appAddress) {
+                    document.getElementById('footerAddress').innerText = '📍 ' + appAddress;
+                }
+                document.getElementById('detailBuyBtn').innerText = appButtonText;
+
                 items = {}; // map by id
-                pData.prices.forEach(priceObj => {
-                    items[priceObj.id] = {
-                        id: priceObj.id,
-                        title: priceObj.text.split('\n')[0].substring(0, 40) + '...', // short title
-                        price: '',
-                        img: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994', // default fallback placeholder
-                        desc: priceObj.text
-                    };
-                    
-                    // Actually, if it's a photo, Telegram API files can only be accessed via Bot API by downloading them.
-                    // For Web App safety, we just show a generic photo or try to parse logic, but without direct links, 
-                    // we stick to generic pictures or you can parse links from text if they exist.
-                    
-                    container.innerHTML += `
-                        <div class="card glass" onclick="openDetail('${priceObj.id}')">
-                            <img src="https://images.unsplash.com/photo-1568605114967-8130f3a36994" alt="Uy">
-                            <div class="price"></div>
-                            <div class="meta" style="font-weight: 600; color: #fff; white-space: pre-line;">${items[priceObj.id].title}</div>
-                            <div class="meta" style="margin-top: 10px; color: #38bdf8;">Batafsil ko'rish ➔</div>
-                        </div>
-                    `;
-                });
+                if (pData.prices) {
+                    pData.prices.forEach(priceObj => {
+                        items[priceObj.id] = {
+                            id: priceObj.id,
+                            title: priceObj.text.split('\n')[0].substring(0, 40) + '...', // short title
+                            price: '',
+                            img: appImage, // DYNAMIC DEFAULT APP IMAGE
+                            desc: priceObj.text
+                        };
+
+                        container.innerHTML += `
+                            <div class="card glass" onclick="openDetail('${priceObj.id}')">
+                                <img src="${appImage}" alt="Uy">
+                                <div class="price"></div>
+                                <div class="meta" style="font-weight: 600; color: #fff; white-space: pre-line;">${items[priceObj.id].title}</div>
+                                <div class="meta" style="margin-top: 10px; color: #38bdf8;">Batafsil ko'rish ➔</div>
+                            </div>
+                        `;
+                    });
+                }
             } catch (err) {
                 console.error(err);
                 document.getElementById('loading').innerText = "Ma'lumot yuklashda xatolik yuz berdi.";

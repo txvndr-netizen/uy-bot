@@ -204,8 +204,9 @@ const editSettingsWizard = new Scenes.WizardScene(
         ctx.reply(
             "Nimani o'zgartirmoqchisiz?",
             Markup.keyboard([
-                ["Telergam Username", "Telefon raqam"],
-                ["❌ Bekor qilish"]
+                ["🖼 App Rasmi(URL)", "🔘 App Tugma Yozuvi"],
+                ["🤖 Bot Username", "📞 Telefon Raqam"],
+                ["📍 App Manzili", "❌ Bekor qilish"]
             ]).resize()
         );
         return ctx.wizard.next();
@@ -218,16 +219,27 @@ const editSettingsWizard = new Scenes.WizardScene(
 
         if (!ctx.message || !ctx.message.text) return;
 
-        if (ctx.message.text === "Telergam Username") {
+        const text = ctx.message.text;
+
+        if (text === "🤖 Bot Username") {
             ctx.wizard.state.editType = "telegram";
-            ctx.reply("Yangi username kiriting (masalan @admin):", Markup.removeKeyboard());
+            ctx.reply("Yangi username kiriting (masalan @admin). O'chirish uchun '0' deb yozing:", Markup.removeKeyboard());
             return ctx.wizard.next();
-        } else if (ctx.message.text === "Telefon raqam") {
+        } else if (text === "📞 Telefon Raqam") {
             ctx.wizard.state.editType = "phone";
-            ctx.reply(
-                "Yangi telefon raqam kiriting (masalan +998901234567):",
-                Markup.removeKeyboard()
-            );
+            ctx.reply("Yangi telefon raqam kiriting (masalan +998901234567). O'chirish uchun '0' deb yozing:", Markup.removeKeyboard());
+            return ctx.wizard.next();
+        } else if (text === "🖼 App Rasmi(URL)") {
+            ctx.wizard.state.editType = "app_image";
+            ctx.reply("Mini App dagi uy rasmining URL manzilini kiriting (https://...jpg). O'chirish uchun '0' deb yozing:", Markup.removeKeyboard());
+            return ctx.wizard.next();
+        } else if (text === "🔘 App Tugma Yozuvi") {
+            ctx.wizard.state.editType = "app_button_text";
+            ctx.reply("Mini App dagi tugmacha yozuvini kiriting. O'chirish uchun '0' deb yozing:", Markup.removeKeyboard());
+            return ctx.wizard.next();
+        } else if (text === "📍 App Manzili") {
+            ctx.wizard.state.editType = "app_address";
+            ctx.reply("Mini App pastida chiqadigan manzilni kiriting. O'chirish uchun '0' deb yozing:", Markup.removeKeyboard());
             return ctx.wizard.next();
         } else {
             ctx.reply("Iltimos, tugmalardan birini tanlang.");
@@ -237,11 +249,15 @@ const editSettingsWizard = new Scenes.WizardScene(
     (ctx) => {
         if (!ctx.message || !ctx.message.text) return;
 
+        let val = ctx.message.text;
+        if (val === '0') val = ""; // o'chirish uchun
+
         const data = loadData();
-        data.settings[ctx.wizard.state.editType] = ctx.message.text;
+        if (!data.settings) data.settings = {};
+        data.settings[ctx.wizard.state.editType] = val;
         saveData(data);
 
-        ctx.reply("Muvaqqiyatli o'zgartirildi!", getAdminMenu());
+        ctx.reply("Muvaqqiyatli o'zgartirildi/saqlandi!", getAdminMenu());
         return ctx.scene.leave();
     }
 );
@@ -344,17 +360,17 @@ bot.use(stage.middleware());
 
 function getMainMenu() {
     return Markup.keyboard([
-        ["📋 Xizmatlarimiz", "💰 Narxlar"],
-        ["🛒 Buyurtma berish"],
-        ["📞 Bog'lanish", Markup.button.webApp("🏠 Mini App ochish", WEB_APP_URL)]
+        ["📋 Xizmatlar", "💰 E'lonlar"],
+        ["🛒 Buyurtma", "📞 Bog'lanish"],
+        [Markup.button.webApp("🏠 Mini App", WEB_APP_URL)]
     ]).resize();
 }
 
 function getAdminMenu() {
     return Markup.keyboard([
-        ["📊 Statistika", "➕ Narx qo'shish"],
-        ["⚙️ Sozlamalar", "👮 Admin qo'shish"],
-        ["➕ Xizmat qo'shish", "🔙 Asosiy Menyu"]
+        ["📊 Statistika", "➕ E'lon Qo'shish"],
+        ["⚙️ App Sozlamalari", "👮 Admin Qo'shish"],
+        ["➕ Xizmat Qo'shish", "🔙 Asosiy"]
     ]).resize();
 }
 
@@ -397,7 +413,7 @@ bot.command("admin", (ctx) => {
 });
 
 // Tugmalar ishlashi
-bot.hears("📋 Xizmatlarimiz", (ctx) => {
+bot.hears("📋 Xizmatlar", (ctx) => {
     const data = loadData();
 
     if (!data.services.length) {
@@ -414,7 +430,7 @@ bot.hears("📋 Xizmatlarimiz", (ctx) => {
     );
 });
 
-bot.hears("💰 Narxlar", async (ctx) => {
+bot.hears("💰 E'lonlar", async (ctx) => {
     const data = loadData();
 
     if (data.prices.length === 0) {
@@ -440,7 +456,7 @@ bot.hears("💰 Narxlar", async (ctx) => {
     }
 });
 
-bot.hears("🛒 Buyurtma berish", (ctx) => {
+bot.hears("🛒 Buyurtma", (ctx) => {
     ctx.scene.enter("ORDER_WIZARD");
 });
 
@@ -457,9 +473,9 @@ bot.hears("📞 Bog'lanish", (ctx) => {
     );
 });
 
-bot.hears("🏠 Mini App ochish", (ctx) => {
+bot.hears("🏠 Mini App", (ctx) => {
     ctx.reply(
-        "Mini App ni ochish uchun pastdagi klaviaturadagi (qatorlardagi) 🏠 OCHISH tugmasini bosing! Yozuvli tugma orqali ochganda to'lov tizimi ishlamaydi.",
+        "Mini App ni ochish uchun pastdagi klaviaturadagi (qatorlardagi) 🏠 Mini App tugmasini bosing!",
         Markup.inlineKeyboard([
             [Markup.button.webApp("Ochish", WEB_APP_URL)]
         ])
@@ -467,7 +483,7 @@ bot.hears("🏠 Mini App ochish", (ctx) => {
 });
 
 // Admin menyusi ichidagi tugmalar
-bot.hears("🔙 Asosiy Menyu", (ctx) => {
+bot.hears("🔙 Asosiy", (ctx) => {
     ctx.reply("Asosiy menyuga qaytdik", getMainMenu());
 });
 
@@ -482,22 +498,22 @@ bot.hears("📊 Statistika", (ctx) => {
     );
 });
 
-bot.hears("➕ Narx qo'shish", (ctx) => {
+bot.hears("➕ E'lon Qo'shish", (ctx) => {
     if (!isAdmin(ctx)) return;
     ctx.scene.enter("ADD_PRICE_WIZARD");
 });
 
-bot.hears("⚙️ Sozlamalar", (ctx) => {
+bot.hears("⚙️ App Sozlamalari", (ctx) => {
     if (!isAdmin(ctx)) return;
     ctx.scene.enter("EDIT_SETTINGS_WIZARD");
 });
 
-bot.hears("👮 Admin qo'shish", (ctx) => {
+bot.hears("👮 Admin Qo'shish", (ctx) => {
     if (!isAdmin(ctx)) return;
     ctx.scene.enter("ADD_ADMIN_WIZARD");
 });
 
-bot.hears("➕ Xizmat qo'shish", (ctx) => {
+bot.hears("➕ Xizmat Qo'shish", (ctx) => {
     if (!isAdmin(ctx)) return;
     ctx.scene.enter("ADD_SERVICE_WIZARD");
 });
@@ -599,7 +615,8 @@ app.get("/api/data", (req, res) => {
     const data = loadData();
     res.json({
         prices: data.prices || [],
-        services: data.services || []
+        services: data.services || [],
+        settings: data.settings || {}
     });
 });
 
