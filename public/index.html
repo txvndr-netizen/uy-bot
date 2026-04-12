@@ -8,17 +8,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #F8FAFC;
-            --surface: #FFFFFF;
-            --primary: #2563EB;
-            --primary-dark: #1D4ED8;
-            --text-main: #0F172A;
-            --text-muted: #64748B;
-            --price: #059669;
-            --border: #E2E8F0;
-            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
-            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            --bg-color: #0f172a;
+            --surface: #1e293b;
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --price: #10b981;
+            --border: #334155;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.4), 0 2px 4px -1px rgba(0,0,0,0.2);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.5), 0 4px 6px -2px rgba(0,0,0,0.25);
             --radius-md: 12px;
             --radius-lg: 20px;
         }
@@ -35,9 +35,6 @@
             background-color: var(--bg-color);
             color: var(--text-main);
             overflow-x: hidden;
-            background: -webkit-linear-gradient(#fff, #cbd5e1);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
         }
 
         /* Glassmorphism Classes */
@@ -212,7 +209,7 @@
             ← Orqaga
         </button>
         <div class="glass" style="padding: 16px;">
-            <img id="detailImg" src="" alt="Uy rasmi" class="detail-img">
+            <img id="detailImg" src="" alt="Uy rasmi" class="detail-img" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1568605114967-8130f3a36994';">
             <div id="detailPrice" class="price"></div>
             <div id="detailTitle" class="detail-title"></div>
             <div id="detailDesc" class="detail-desc"></div>
@@ -308,7 +305,7 @@
 
                         container.innerHTML += `
                             <div class="card glass" onclick="openDetail('${priceObj.id}')">
-                                <img src="${appImage}" alt="Uy">
+                                <img src="${appImage}" alt="Uy" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1568605114967-8130f3a36994';">
                                 <div class="price"></div>
                                 <div class="meta" style="font-weight: 600; color: #fff; white-space: pre-line;">${items[priceObj.id].title}</div>
                                 <div class="meta" style="margin-top: 10px; color: #38bdf8;">Batafsil ko'rish ➔</div>
