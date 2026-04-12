@@ -771,7 +771,7 @@ bot.on("text", (ctx) => {
             return ctx.reply("Siz uyingizni sotmoqchi yoki ijaraga bermoqchimisiz? Unda 📞 Bog'lanish menyusiga o'tib, to'g'ridan-to'g'ri menedjer bilan aloqaga chiqing va obyektingiz rasmlarini yuboring.", getMainMenu(ctx.from.id));
         }
         
-        return ctx.reply("Sizga mos uylarni topish yoki ijaraga olish bo'yicha eng zo'r takliflarni ko'rish uchun 🏠 Mini Appni oching yoki 💰 E'lonlar tugmasini bosing!", getMainMenu(ctx.from.id));
+        return ctx.reply("Sizga mos uylarni topish yoki ijaraga olish bo'yicha eng zo'r takliflarni ko'rish uchun 🏠 Mini Appni oching!", getMainMenu(ctx.from.id));
     }
 
     // Tushunilmagan boshqa matnlar uchrashsa
@@ -818,22 +818,25 @@ app.post("/api/check-admin", (req, res) => {
 
 // E'lon qo'shish (App ichidan)
 app.post("/api/prices", (req, res) => {
-    const { userId, text, type, customImgUrl } = req.body;
+    const { userId, text, type, customImgUrl, category } = req.body;
     const data = loadData();
     const adminEnv = process.env.ADMIN_CHAT_ID;
     const isAdm = String(userId) === String(adminEnv) || (data.admins && data.admins.some(a => String(a) === String(userId)));
     
     if (!isAdm) return res.status(403).json({ error: "Unauthorized" });
 
+    // Hozirgi kunda WebApp asosan 'url' formatidan foydalanadi
     const newObj = {
-        id: Date.now(),
-        type: type || "photo",
-        text: text || "",
-        mediaId: "", // Appdan yuklanganda asosan link ishlatamiz
-        customImgUrl: customImgUrl || "" 
+        id: "prc_" + Date.now(),
+        text: text,
+        type: type, // "url" yoki "photo"
+        mediaId: customImgUrl,
+        category: category || "Barchasi",
+        isSold: false
     };
-
-    data.prices.unshift(newObj); // Yangisini eng boshiga qo'shish
+    
+    if (!data.prices) data.prices = [];
+    data.prices.unshift(newObj);
     saveData(data);
     res.json({ success: true, item: newObj });
 });
