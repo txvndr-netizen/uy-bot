@@ -3,10 +3,19 @@ const { Telegraf, session, Scenes, Markup } = require("telegraf");
 const fs = require("fs");
 const path = require("path");
 
-// Ma'lumotlarni saqlash manzili (Railway xotirasi o'chib ketishidan himoya)
+// Ma'lumotlarni saqlash manzili (Railway Volume uchun)
+const VOLUME_PATH = "/app/database";
 let DATA_FILE = path.join(__dirname, "data.json");
-if (fs.existsSync("/app/database")) {
-    DATA_FILE = "/app/database/data.json";
+
+if (fs.existsSync(VOLUME_PATH)) {
+    DATA_FILE = path.join(VOLUME_PATH, "data.json");
+} else {
+    // Agar lokalda ishlayotgan bo'lsak va data.json yo'q bo'lsa, yaratib qo'yamiz
+    if (!fs.existsSync(DATA_FILE)) {
+        fs.writeFileSync(DATA_FILE, JSON.stringify({
+            users: [], orders: [], admins: [], settings: {}, prices: [], services: [], customButtons: []
+        }, null, 2));
+    }
 }
 
 function loadData() {
