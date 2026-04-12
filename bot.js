@@ -3,7 +3,11 @@ const { Telegraf, session, Scenes, Markup } = require("telegraf");
 const fs = require("fs");
 const path = require("path");
 
-const DATA_FILE = path.join(__dirname, "data.json");
+// Ma'lumotlarni saqlash manzili (Railway xotirasi o'chib ketishidan himoya)
+let DATA_FILE = path.join(__dirname, "data.json");
+if (fs.existsSync("/app/database")) {
+    DATA_FILE = "/app/database/data.json";
+}
 
 function loadData() {
     try {
