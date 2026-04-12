@@ -629,7 +629,7 @@ bot.launch().then(() => {
 const express = require("express");
 const app = express();
 
-app.use(express.json()); // POST tana(body) o'qish uchun
+app.use(express.json({ limit: '10mb' })); // POST tana(body) o'qish uchun limitni oshirish (rasmlar uchun)
 
 // "public" papkasidagi html fayllarni serverga yuklash
 app.use(express.static(path.join(__dirname, "public")));

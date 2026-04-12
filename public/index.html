@@ -262,8 +262,12 @@
             <p style="font-size:13px; color:var(--text-muted); margin-bottom:24px;">Admin paneli orqali ijaraga yoki sotuvga uy qo'shish formasi.</p>
 
             <div class="input-group">
-                <label>Rasm manzili (URL link)</label>
-                <input type="text" id="addImg" placeholder="https://....jpg ixtiyoriy">
+                <label>Hovli yoki uyning zo'r rasmini tanlang</label>
+                <div style="position:relative; width:100%; height:140px; border: 2px dashed var(--primary); background: rgba(37, 99, 235, 0.05); border-radius:12px; display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden;" onclick="document.getElementById('addImgFile').click()">
+                    <div id="imgPreviewText" style="color:var(--primary); font-size:14px; font-weight:600;">+ 📸 Rasm Tanglash (Galereya)</div>
+                    <img id="imgPreviewActual" src="" style="display:none; width:100%; height:100%; object-fit:cover; position:absolute; top:0; left:0;">
+                </div>
+                <input type="file" id="addImgFile" accept="image/*" style="display:none;" onchange="handleImageSelect(event)">
             </div>
 
             <div class="input-group">
@@ -467,10 +471,46 @@
         }
 
         // ADMIN API CALLS
+        let uploadedBase64 = "";
+
+        function handleImageSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            document.getElementById('imgPreviewText').innerText = "Qayta ishlanmoqda... ⏳";
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width; let height = img.height;
+                    const MAX = 600; // Siqilgan, joy olmasligi uchun
+                    if (width > height && width > MAX) { height *= MAX / width; width = MAX; }
+                    else if (height > MAX) { width *= MAX / height; height = MAX; }
+                    canvas.width = width; canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    uploadedBase64 = canvas.toDataURL('image/jpeg', 0.6);
+                    
+                    document.getElementById('imgPreviewText').style.display = 'none';
+                    document.getElementById('imgPreviewActual').src = uploadedBase64;
+                    document.getElementById('imgPreviewActual').style.display = 'block';
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
         async function submitNewItem() {
             const txt = document.getElementById('addText').value;
-            const img = document.getElementById('addImg').value;
-            if(!txt) return (tg.showAlert ? tg.showAlert("Ma'lumot kiriting!") : alert("Xato"));
+            const img = uploadedBase64;
+            if(!txt || !img) return (tg.showAlert ? tg.showAlert("Ma'lumot va albatta 1 ta Rasm kiriting!") : alert("Xato: Oyna bo'sh"));
+            
+            // Tugmani o'chirish ikkita ketib qolmasligi un
+            const btn = event.target; 
+            btn.disabled = true;
+            btn.innerText = "Kuting... ⏳";
             
             try {
                 const req = await fetch('/api/prices', {
