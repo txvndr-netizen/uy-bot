@@ -289,6 +289,7 @@
             <!-- Dynamic Content -->
         </div>
         <button id="detailBuyBtn" class="btn-primary" style="margin-top:20px;" onclick="openCheckout()">Sotib olish / Band qilish</button>
+    </div> <!-- Close detailView here -->
 
     <!-- DETAIL VIEW ADMIN ACTIONS HIDDEN OVERRIDE -->
     <!-- (we use JS generated button now, deleting the static one below) -->
@@ -418,7 +419,8 @@
 
         function navigate(viewId) {
             ['listView', 'detailView', 'addView', 'checkoutView', 'statsView', 'settingsView'].forEach(id => {
-                document.getElementById(id).style.display = (id === viewId) ? 'block' : 'none';
+                const el = document.getElementById(id);
+                if (el) el.style.display = (id === viewId) ? 'block' : 'none';
             });
             window.scrollTo(0,0);
         }
