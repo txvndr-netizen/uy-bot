@@ -343,12 +343,102 @@ const addServiceWizard = new Scenes.WizardScene(
     }
 );
 
+const addCustomBtnWizard = new Scenes.WizardScene(
+    "ADD_CUSTOM_BTN_WIZARD",
+    (ctx) => {
+        ctx.reply("Yangi tugma uchun qisqa nom kiriting (masalan: 💳 Karta raqam)\nYoki '❌ Bekor qilish' ni bosing:", Markup.keyboard([["❌ Bekor qilish"]]).resize());
+        return ctx.wizard.next();
+    },
+    (ctx) => {
+        if (ctx.message && ctx.message.text === "❌ Bekor qilish") {
+            ctx.reply("Bekor qilindi.", getAdminMenu());
+            return ctx.scene.leave();
+        }
+        if (!ctx.message || !ctx.message.text) return;
+        ctx.wizard.state.btnTitle = ctx.message.text;
+        
+        ctx.reply("Zo'r! Endi shu tugma bosilganda qanday matn (javob) qaytarishini yozing (karta raqami, manzil, karta egasi hkz):");
+        return ctx.wizard.next();
+    },
+    (ctx) => {
+        if (ctx.message && ctx.message.text === "❌ Bekor qilish") {
+            ctx.reply("Bekor qilindi.", getAdminMenu());
+            return ctx.scene.leave();
+        }
+        if (!ctx.message || !ctx.message.text) return;
+        
+        const data = loadData();
+        if (!data.customButtons) data.customButtons = [];
+        data.customButtons.push({
+            id: "btn_" + Date.now(),
+            title: ctx.wizard.state.btnTitle,
+            text: ctx.message.text
+        });
+        saveData(data);
+        
+        ctx.reply(`"${ctx.wizard.state.btnTitle}" maxsus tugmasi muvaffaqiyatli qo'shildi! Asosiy menyuda ko'rinadi.`, getAdminMenu());
+        return ctx.scene.leave();
+    }
+);
+
+const rmCustomBtnWizard = new Scenes.WizardScene(
+    "RM_CUSTOM_BTN_WIZARD",
+    (ctx) => {
+        const data = loadData();
+        if (!data.customButtons || data.customButtons.length === 0) {
+            ctx.reply("Hozircha hech qanday maxsus tugma yo'q.", getAdminMenu());
+            return ctx.scene.leave();
+        }
+        const btns = data.customButtons.map(b => [Markup.button.callback(b.title, `delbtn_${b.id}`)]);
+        ctx.reply("O'chirish uchun quyidagilardan birini tanlang:", Markup.inlineKeyboard(btns));
+        return ctx.scene.leave();
+    }
+);
+
+const rmAdminWizard = new Scenes.WizardScene(
+    "RM_ADMIN_WIZARD",
+    (ctx) => {
+        const data = loadData();
+        if (!data.admins || data.admins.length === 0) {
+            ctx.reply("Hech qanday qo'shimcha admin yo'q.", getAdminMenu());
+            return ctx.scene.leave();
+        }
+        let txt = "Botdagi qo'shimcha adminlar ID si:\n";
+        data.admins.forEach(a => { txt += `- ${a}\n`; });
+        ctx.reply(txt + "\nO'chirmoqchi bo'lganingizni ID sini yozib yuboring (Yoki '❌ Bekor qilish' bosing):", Markup.keyboard([["❌ Bekor qilish"]]).resize());
+        return ctx.wizard.next();
+    },
+    (ctx) => {
+        if (ctx.message && ctx.message.text === "❌ Bekor qilish") {
+            ctx.reply("Bekor qilindi.", getAdminMenu());
+            return ctx.scene.leave();
+        }
+        if (!ctx.message || !ctx.message.text) return;
+
+        const toRm = parseInt(ctx.message.text, 10);
+        const data = loadData();
+        const initialLen = data.admins.length;
+        data.admins = data.admins.filter(a => a !== toRm);
+        if (data.admins.length < initialLen) {
+            saveData(data);
+            ctx.reply("Admin muvaffaqiyatli o'chirildi!", getAdminMenu());
+        } else {
+            ctx.reply("Bunday ID topilmadi.", getAdminMenu());
+        }
+        return ctx.scene.leave();
+    }
+);
+
+
 const stage = new Scenes.Stage([
     orderWizard,
     addPriceWizard,
     editSettingsWizard,
     addAdminWizard,
-    addServiceWizard
+    addServiceWizard,
+    addCustomBtnWizard,
+    rmCustomBtnWizard,
+    rmAdminWizard
 ]);
 
 bot.use(session());
@@ -362,18 +452,34 @@ function getMainMenu(userId = "") {
     let url = WEB_APP_URL;
     if (userId) url += "?uid=" + userId;
     
-    return Markup.keyboard([
+    let keyboard = [
         ["📋 Xizmatlar", "💰 E'lonlar"],
-        ["🛒 Buyurtma", "📞 Bog'lanish"],
-        [Markup.button.webApp("🏠 Mini App", url)]
-    ]).resize();
+        ["🛒 Buyurtma", "📞 Bog'lanish"]
+    ];
+
+    const data = loadData();
+    if (data.customButtons && data.customButtons.length > 0) {
+        let row = [];
+        data.customButtons.forEach(b => {
+            row.push(b.title);
+            if (row.length === 2) {
+                keyboard.push(row);
+                row = [];
+            }
+        });
+        if (row.length > 0) keyboard.push(row);
+    }
+    
+    keyboard.push([Markup.button.webApp("🏠 Mini App", url)]);
+    return Markup.keyboard(keyboard).resize();
 }
 
 function getAdminMenu() {
     return Markup.keyboard([
-        ["📊 Statistika", "➕ E'lon Qo'shish"],
-        ["⚙️ App Sozlamalari", "👮 Admin Qo'shish"],
-        ["➕ Xizmat Qo'shish", "🔙 Asosiy"]
+        ["📊 Statistika", "⚙️ Sozlamalari"],
+        ["👮 Admin +", "👮 Admin -"],
+        ["⌨️ Tugma +", "⌨️ Tugma -"],
+        ["➕ E'lon (Bot)", "🔙 Asosiy"]
     ]).resize();
 }
 
@@ -501,27 +607,48 @@ bot.hears("📊 Statistika", (ctx) => {
     );
 });
 
-bot.hears("➕ E'lon Qo'shish", (ctx) => {
+bot.hears("➕ E'lon (Bot)", (ctx) => {
     if (!isAdmin(ctx)) return;
     ctx.scene.enter("ADD_PRICE_WIZARD");
 });
 
-bot.hears("⚙️ App Sozlamalari", (ctx) => {
+bot.hears("⚙️ Sozlamalari", (ctx) => {
     if (!isAdmin(ctx)) return;
     ctx.scene.enter("EDIT_SETTINGS_WIZARD");
 });
 
-bot.hears("👮 Admin Qo'shish", (ctx) => {
+bot.hears("👮 Admin +", (ctx) => {
     if (!isAdmin(ctx)) return;
     ctx.scene.enter("ADD_ADMIN_WIZARD");
 });
 
-bot.hears("➕ Xizmat Qo'shish", (ctx) => {
+bot.hears("👮 Admin -", (ctx) => {
     if (!isAdmin(ctx)) return;
-    ctx.scene.enter("ADD_SERVICE_WIZARD");
+    ctx.scene.enter("RM_ADMIN_WIZARD");
+});
+
+bot.hears("⌨️ Tugma +", (ctx) => {
+    if (!isAdmin(ctx)) return;
+    ctx.scene.enter("ADD_CUSTOM_BTN_WIZARD");
+});
+
+bot.hears("⌨️ Tugma -", (ctx) => {
+    if (!isAdmin(ctx)) return;
+    ctx.scene.enter("RM_CUSTOM_BTN_WIZARD");
 });
 
 // Inline tugmalar bosilishi
+bot.action(/delbtn_(.+)/, async (ctx) => {
+    const btnId = ctx.match[1];
+    const data = loadData();
+    if (data.customButtons) {
+        data.customButtons = data.customButtons.filter(b => b.id !== btnId);
+        saveData(data);
+        await ctx.answerCbQuery("O'chirildi!");
+        await ctx.editMessageText("Tugma muvaffaqiyatli o'chirildi. Asosiy menyu ro'yxati yangilandi.");
+    }
+});
+
 bot.action(/service_(.+)/, async (ctx) => {
     const serviceId = ctx.match[1];
     const data = loadData();
@@ -599,10 +726,20 @@ bot.on("web_app_data", async (ctx) => {
 });
 
 bot.on("text", (ctx) => {
-    const msg = ctx.message.text.toLowerCase();
+    const msgTextOriginal = ctx.message.text;
+    const msg = msgTextOriginal.toLowerCase();
     
     // Asosiy menyu tugmalari emasligini tekshiramiz
     if (msg.startsWith("/")) return;
+
+    // Dinamik maxsus tugmalar
+    const data = loadData();
+    if (data.customButtons) {
+        const customBtn = data.customButtons.find(b => b.title === msgTextOriginal);
+        if (customBtn) {
+            return ctx.reply(customBtn.text, getMainMenu(ctx.from.id));
+        }
+    }
 
     if (msg.includes("uy") || msg.includes("kvartira") || msg.includes("narx") || msg.includes("sotaman") || msg.includes("olaman") || msg.includes("ijara") || msg.includes("hovli") || msg.includes("uchastka") || msg.includes("dom") || msg.includes("sotib")) {
         
