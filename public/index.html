@@ -316,10 +316,19 @@
         let isAdmin = false;
         let tgUser = null;
 
+        // URL dan uid olish (Eski versiya yoki nosozliklar uchun zaxira)
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlUid = urlParams.get('uid');
+
         // Initialize User Profile in Sidebar
         try {
             if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
                 tgUser = tg.initDataUnsafe.user;
+            } else if (urlUid) {
+                tgUser = { id: parseInt(urlUid), first_name: "Foydalanuvchi" };
+            }
+            
+            if (tgUser) {
                 document.getElementById('userNameTxt').innerText = `${tgUser.first_name || ""} ${tgUser.last_name || ""}`.trim() || "Foydalanuvchi";
                 document.getElementById('userIdTxt').innerText = `ID: ${tgUser.id}`;
                 document.getElementById('avatarInitial').innerText = (tgUser.first_name ? tgUser.first_name.charAt(0) : "U").toUpperCase();

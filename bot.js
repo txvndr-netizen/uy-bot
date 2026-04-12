@@ -81,7 +81,7 @@ const orderWizard = new Scenes.WizardScene(
         const services = data.services.map((s) => [s.name]);
 
         if (services.length === 0) {
-            ctx.reply("Hozircha xizmatlar qo'shilmagan. Admin bilan bog'laning.", getMainMenu());
+            ctx.reply("Hozircha xizmatlar qo'shilmagan. Admin bilan bog'laning.", getMainMenu(ctx.from.id));
             return ctx.scene.leave();
         }
 
@@ -112,7 +112,7 @@ const orderWizard = new Scenes.WizardScene(
 
         await ctx.reply(
             "Yaxshi! Buyurtmangiz qabul qilindi! Tez orada aloqaga chiqamiz.",
-            getMainMenu()
+            getMainMenu(ctx.from.id)
         );
 
         const adminMsg =
@@ -358,11 +358,14 @@ bot.use(stage.middleware());
 // MENUS (Menyular)
 // -------------------------------------------------------------
 
-function getMainMenu() {
+function getMainMenu(userId = "") {
+    let url = WEB_APP_URL;
+    if (userId) url += "?uid=" + userId;
+    
     return Markup.keyboard([
         ["📋 Xizmatlar", "💰 E'lonlar"],
         ["🛒 Buyurtma", "📞 Bog'lanish"],
-        [Markup.button.webApp("🏠 Mini App", WEB_APP_URL)]
+        [Markup.button.webApp("🏠 Mini App", url)]
     ]).resize();
 }
 
@@ -400,7 +403,7 @@ bot.start((ctx) => {
 
     ctx.reply(
         "Assalomu alaykum! Botimizga xush kelibsiz. Quyidagi menyudan kerakli bo'limni tanlang:",
-        getMainMenu()
+        getMainMenu(ctx.from.id)
     );
 });
 
@@ -477,14 +480,14 @@ bot.hears("🏠 Mini App", (ctx) => {
     ctx.reply(
         "Mini App ni ochish uchun pastdagi klaviaturadagi (qatorlardagi) 🏠 Mini App tugmasini bosing!",
         Markup.inlineKeyboard([
-            [Markup.button.webApp("Ochish", WEB_APP_URL)]
+            [Markup.button.webApp("Ochish", WEB_APP_URL + "?uid=" + ctx.from.id)]
         ])
     );
 });
 
 // Admin menyusi ichidagi tugmalar
 bot.hears("🔙 Asosiy", (ctx) => {
-    ctx.reply("Asosiy menyuga qaytdik", getMainMenu());
+    ctx.reply("Asosiy menyuga qaytdik", getMainMenu(ctx.from.id));
 });
 
 bot.hears("📊 Statistika", (ctx) => {
@@ -563,7 +566,7 @@ bot.on("web_app_data", async (ctx) => {
 
             await ctx.reply(
                 "🎉 Tabriklaymiz! Buyurtmangiz qabul qilindi. Tez orada mutaxassislarimiz tashkil qilish uchun aloqaga chiqishadi.",
-                getMainMenu()
+                getMainMenu(ctx.from.id)
             );
 
             // Adminga xabar yuborish
@@ -604,14 +607,14 @@ bot.on("text", (ctx) => {
     if (msg.includes("uy") || msg.includes("kvartira") || msg.includes("narx") || msg.includes("sotaman") || msg.includes("olaman") || msg.includes("ijara") || msg.includes("hovli") || msg.includes("uchastka") || msg.includes("dom") || msg.includes("sotib")) {
         
         if (msg.includes("sotaman") || msg.includes("ijaraga beraman")) {
-            return ctx.reply("Siz uyingizni sotmoqchi yoki ijaraga bermoqchimisiz? Unda 📞 Bog'lanish menyusiga o'tib, to'g'ridan-to'g'ri menedjer bilan aloqaga chiqing va obyektingiz rasmlarini yuboring.", getMainMenu());
+            return ctx.reply("Siz uyingizni sotmoqchi yoki ijaraga bermoqchimisiz? Unda 📞 Bog'lanish menyusiga o'tib, to'g'ridan-to'g'ri menedjer bilan aloqaga chiqing va obyektingiz rasmlarini yuboring.", getMainMenu(ctx.from.id));
         }
         
-        return ctx.reply("Sizga mos uylarni topish yoki ijaraga olish bo'yicha eng zo'r takliflarni ko'rish uchun 🏠 Mini Appni oching yoki 💰 E'lonlar tugmasini bosing!", getMainMenu());
+        return ctx.reply("Sizga mos uylarni topish yoki ijaraga olish bo'yicha eng zo'r takliflarni ko'rish uchun 🏠 Mini Appni oching yoki 💰 E'lonlar tugmasini bosing!", getMainMenu(ctx.from.id));
     }
 
     // Tushunilmagan boshqa matnlar uchrashsa
-    ctx.reply("Sizga qanday yordam bera olaman? Biz bilan ishonchli uy oling yoki soting! Menga uylar haqida nima so'ramoqchi bo'lsangiz yozing yoki tugmalardan foydalaning.", getMainMenu());
+    ctx.reply("Sizga qanday yordam bera olaman? Biz bilan ishonchli uy oling yoki soting! Menga uylar haqida nima so'ramoqchi bo'lsangiz yozing yoki tugmalardan foydalaning.", getMainMenu(ctx.from.id));
 });
 
 bot.launch().then(() => {
