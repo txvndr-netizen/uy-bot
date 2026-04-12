@@ -204,9 +204,11 @@ const editSettingsWizard = new Scenes.WizardScene(
         ctx.reply(
             "Nimani o'zgartirmoqchisiz?",
             Markup.keyboard([
-                ["🖼 App Rasmi(URL)", "🔘 App Tugma Yozuvi"],
-                ["🤖 Bot Username", "📞 Telefon Raqam"],
-                ["📍 App Manzili", "❌ Bekor qilish"]
+                ["🖼 App Rasmi", "🔘 App Tugmasi"],
+                ["🤖 Bot Username", "📞 Tel Raqam"],
+                ["🎛 Bot T- Xizmatlar", "🎛 Bot T- E'lonlar"],
+                ["🎛 Bot T- Buyurtma", "🎛 Bot T- Bog'lanish"],
+                ["📍 Manzil", "❌ Bekor qilish"]
             ]).resize()
         );
         return ctx.wizard.next();
@@ -223,41 +225,48 @@ const editSettingsWizard = new Scenes.WizardScene(
 
         if (text === "🤖 Bot Username") {
             ctx.wizard.state.editType = "telegram";
-            ctx.reply("Yangi username kiriting (masalan @admin). O'chirish uchun '0' deb yozing:", Markup.removeKeyboard());
-            return ctx.wizard.next();
-        } else if (text === "📞 Telefon Raqam") {
+            ctx.reply("Yangi username kiriting (masalan @admin). O'chirish (yashirish) uchun '0' deb yozing:", Markup.removeKeyboard());
+        } else if (text === "📞 Tel Raqam") {
             ctx.wizard.state.editType = "phone";
-            ctx.reply("Yangi telefon raqam kiriting (masalan +998901234567). O'chirish uchun '0' deb yozing:", Markup.removeKeyboard());
-            return ctx.wizard.next();
-        } else if (text === "🖼 App Rasmi(URL)") {
+            ctx.reply("Yangi telefon raqam kiriting. O'chirish uchun '0' deb yozing:", Markup.removeKeyboard());
+        } else if (text === "🖼 App Rasmi") {
             ctx.wizard.state.editType = "app_image";
             ctx.reply("Mini App dagi uy rasmining URL manzilini kiriting (https://...jpg). O'chirish uchun '0' deb yozing:", Markup.removeKeyboard());
-            return ctx.wizard.next();
-        } else if (text === "🔘 App Tugma Yozuvi") {
+        } else if (text === "🔘 App Tugmasi") {
             ctx.wizard.state.editType = "app_button_text";
             ctx.reply("Mini App dagi tugmacha yozuvini kiriting. O'chirish uchun '0' deb yozing:", Markup.removeKeyboard());
-            return ctx.wizard.next();
-        } else if (text === "📍 App Manzili") {
+        } else if (text === "📍 Manzil") {
             ctx.wizard.state.editType = "app_address";
             ctx.reply("Mini App pastida chiqadigan manzilni kiriting. O'chirish uchun '0' deb yozing:", Markup.removeKeyboard());
-            return ctx.wizard.next();
+        } else if (text === "🎛 Bot T- Xizmatlar") {
+            ctx.wizard.state.editType = "btnServicesTitle";
+            ctx.reply("Botdagi 'Xizmatlar' tugmasi uchun yangi nom yozing (Masalan: 📋 Barcha xizmatlar). Bu tugmani butunlay O'CHIRISH (yashirish) uchun '0' ni yuboring:", Markup.removeKeyboard());
+        } else if (text === "🎛 Bot T- E'lonlar") {
+            ctx.wizard.state.editType = "btnPricesTitle";
+            ctx.reply("Botdagi 'E'lonlar' tugmasi uchun yangi nom yozing (Masalan: 🏡 Uylar). Butunlay O'CHIRISH uchun '0' ni yuboring:", Markup.removeKeyboard());
+        } else if (text === "🎛 Bot T- Buyurtma") {
+            ctx.wizard.state.editType = "btnOrderTitle";
+            ctx.reply("Botdagi 'Buyurtma' tugmasiga yangi nom yozing. Butunlay O'CHIRISH uchun '0' ni yuboring:", Markup.removeKeyboard());
+        } else if (text === "🎛 Bot T- Bog'lanish") {
+            ctx.wizard.state.editType = "btnContactTitle";
+            ctx.reply("Botdagi 'Bog'lanish' tugmasiga yangi nom yozing. Butunlay O'CHIRISH uchun '0' ni yuboring:", Markup.removeKeyboard());
         } else {
             ctx.reply("Iltimos, tugmalardan birini tanlang.");
             return;
         }
+        return ctx.wizard.next();
     },
     (ctx) => {
         if (!ctx.message || !ctx.message.text) return;
 
-        let val = ctx.message.text;
-        if (val === '0') val = ""; // o'chirish uchun
+        let val = ctx.message.text === "0" ? "hide" : ctx.message.text;
 
         const data = loadData();
         if (!data.settings) data.settings = {};
         data.settings[ctx.wizard.state.editType] = val;
         saveData(data);
 
-        ctx.reply("Muvaqqiyatli o'zgartirildi/saqlandi!", getAdminMenu());
+        ctx.reply("Muvaqqiyatli o'zgartirildi/saqlandi! Asosiy menyudagi o'zgarishni ko'rish uchun /start ni bosing.", getAdminMenu());
         return ctx.scene.leave();
     }
 );
@@ -452,12 +461,26 @@ function getMainMenu(userId = "") {
     let url = WEB_APP_URL;
     if (userId) url += "?uid=" + userId;
     
-    let keyboard = [
-        ["📋 Xizmatlar", "💰 E'lonlar"],
-        ["🛒 Buyurtma", "📞 Bog'lanish"]
-    ];
-
     const data = loadData();
+    const sets = data.settings || {};
+    
+    const btnSrv = sets.btnServicesTitle || "📋 Xizmatlar";
+    const btnPrc = sets.btnPricesTitle || "💰 E'lonlar";
+    const btnOrd = sets.btnOrderTitle || "🛒 Buyurtma";
+    const btnCnt = sets.btnContactTitle || "📞 Bog'lanish";
+
+    let defaultRow1 = [];
+    if (btnSrv !== "hide") defaultRow1.push(btnSrv);
+    if (btnPrc !== "hide") defaultRow1.push(btnPrc);
+
+    let defaultRow2 = [];
+    if (btnOrd !== "hide") defaultRow2.push(btnOrd);
+    if (btnCnt !== "hide") defaultRow2.push(btnCnt);
+
+    let keyboard = [];
+    if (defaultRow1.length > 0) keyboard.push(defaultRow1);
+    if (defaultRow2.length > 0) keyboard.push(defaultRow2);
+
     if (data.customButtons && data.customButtons.length > 0) {
         let row = [];
         data.customButtons.forEach(b => {
@@ -521,66 +544,8 @@ bot.command("admin", (ctx) => {
     }
 });
 
-// Tugmalar ishlashi
-bot.hears("📋 Xizmatlar", (ctx) => {
-    const data = loadData();
+// Asosiy menyu amallari endi bot.on('text') ichiga kochirildi.
 
-    if (!data.services.length) {
-        return ctx.reply("Hali xizmatlar qo'shilmagan.");
-    }
-
-    const btns = data.services.map((s) => [
-        Markup.button.callback(s.name, `service_${s.id}`)
-    ]);
-
-    ctx.reply(
-        "Quyidagi xizmatlarimiz mavjud. Batafsil ma'lumot olish uchun ustini bosing:",
-        Markup.inlineKeyboard(btns)
-    );
-});
-
-bot.hears("💰 E'lonlar", async (ctx) => {
-    const data = loadData();
-
-    if (data.prices.length === 0) {
-        return ctx.reply("Hali narxlar qo'shilmagan.");
-    }
-
-    for (const price of data.prices) {
-        const inlineKbd = Markup.inlineKeyboard([
-            [Markup.button.callback("🛒 Buyurtma berish", "start_order")]
-        ]);
-
-        if (price.type === "photo") {
-            await ctx.replyWithPhoto(price.mediaId, {
-                caption: price.text,
-                ...inlineKbd
-            });
-        } else if (price.type === "video") {
-            await ctx.replyWithVideo(price.mediaId, {
-                caption: price.text,
-                ...inlineKbd
-            });
-        }
-    }
-});
-
-bot.hears("🛒 Buyurtma", (ctx) => {
-    ctx.scene.enter("ORDER_WIZARD");
-});
-
-bot.hears("📞 Bog'lanish", (ctx) => {
-    const data = loadData();
-    const tg = data.settings.telegram || "@admin";
-    const phone = data.settings.phone || "+998901234567";
-
-    ctx.reply(
-        `📞 Biz bilan bog'lanish:\n\n` +
-        `📱 Telegram: ${tg}\n` +
-        `📞 Telefon: ${phone}\n` +
-        `🕒 Ish vaqti: 09:00 — 24:00`
-    );
-});
 
 bot.hears("🏠 Mini App", (ctx) => {
     ctx.reply(
@@ -741,6 +706,44 @@ bot.on("text", (ctx) => {
         }
     }
 
+    // Dinamik asosiy menyu tugmalari
+    const sets = data.settings || {};
+    const btnSrv = sets.btnServicesTitle || "📋 Xizmatlar";
+    const btnPrc = sets.btnPricesTitle || "💰 E'lonlar";
+    const btnOrd = sets.btnOrderTitle || "🛒 Buyurtma";
+    const btnCnt = sets.btnContactTitle || "📞 Bog'lanish";
+
+    if (msgTextOriginal === btnSrv && btnSrv !== "hide") {
+        if (!data.services || !data.services.length) return ctx.reply("Hali xizmatlar qo'shilmagan.");
+        const btns = data.services.map((s) => [Markup.button.callback(s.name, `service_${s.id}`)]);
+        return ctx.reply("Quyidagi xizmatlarimiz mavjud. Batafsil ma'lumot olish uchun ustini bosing:", Markup.inlineKeyboard(btns));
+    }
+    
+    if (msgTextOriginal === btnPrc && btnPrc !== "hide") {
+        if (!data.prices || data.prices.length === 0) return ctx.reply("Hali narxlar qo'shilmagan.");
+        for (const price of data.prices) {
+            const inlineKbd = Markup.inlineKeyboard([[Markup.button.callback("🛒 Buyurtma berish", "start_order")]]);
+            if (price.type === "photo" && price.mediaId) {
+                ctx.replyWithPhoto(price.mediaId, { caption: price.text, ...inlineKbd }).catch(()=>{});
+            } else if (price.type === "video" && price.mediaId) {
+                ctx.replyWithVideo(price.mediaId, { caption: price.text, ...inlineKbd }).catch(()=>{});
+            } else {
+                ctx.reply(price.text, inlineKbd).catch(()=>{});
+            }
+        }
+        return;
+    }
+    
+    if (msgTextOriginal === btnOrd && btnOrd !== "hide") {
+        return ctx.scene.enter("ORDER_WIZARD");
+    }
+    
+    if (msgTextOriginal === btnCnt && btnCnt !== "hide") {
+        const tg = sets.telegram || "@admin";
+        const phone = sets.phone || "+998901234567";
+        return ctx.reply(`📞 Biz bilan bog'lanish:\n\n📱 Telegram: ${tg}\n📞 Telefon: ${phone}\n🕒 Ish vaqti: 09:00 — 24:00`);
+    }
+
     if (msg.includes("uy") || msg.includes("kvartira") || msg.includes("narx") || msg.includes("sotaman") || msg.includes("olaman") || msg.includes("ijara") || msg.includes("hovli") || msg.includes("uchastka") || msg.includes("dom") || msg.includes("sotib")) {
         
         if (msg.includes("sotaman") || msg.includes("ijaraga beraman")) {
@@ -831,6 +834,37 @@ app.put("/api/prices/:id", (req, res) => {
         item.isSold = isSold;
         saveData(data);
     }
+    res.json({ success: true });
+});
+
+// Barcha statistika va sozlamalarni APP orqali berish
+app.post("/api/stats", (req, res) => {
+    const { userId } = req.body;
+    const data = loadData();
+    const adminEnv = process.env.ADMIN_CHAT_ID;
+    const isAdm = String(userId) === String(adminEnv) || (data.admins && data.admins.includes(parseInt(userId, 10)));
+    
+    if (!isAdm) return res.status(403).json({ error: "Unauthorized" });
+
+    res.json({
+        success: true,
+        usersCount: data.users ? data.users.length : 0,
+        orders: data.orders || []
+    });
+});
+
+app.post("/api/settings", (req, res) => {
+    const { userId, phone, address } = req.body;
+    const data = loadData();
+    const adminEnv = process.env.ADMIN_CHAT_ID;
+    const isAdm = String(userId) === String(adminEnv) || (data.admins && data.admins.includes(parseInt(userId, 10)));
+    
+    if (!isAdm) return res.status(403).json({ error: "Unauthorized" });
+
+    if (!data.settings) data.settings = {};
+    if (phone !== undefined) data.settings.app_phone = phone;
+    if (address !== undefined) data.settings.app_address = address;
+    saveData(data);
     res.json({ success: true });
 });
 
