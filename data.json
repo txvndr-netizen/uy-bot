@@ -63,7 +63,10 @@
   "admins": [8473181677],
   "settings": {
     "telegram": "@admin_username",
-    "phone": "+998500079066"
+    "phone": "+998500079066",
+    "btnServicesTitle": "hide",
+    "btnPricesTitle": "hide",
+    "btnOrderTitle": "hide"
   },
   "prices": [
     {

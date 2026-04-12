@@ -490,18 +490,18 @@ function getMainMenu(userId = "") {
     const data = loadData();
     const sets = data.settings || {};
     
-    const btnSrv = sets.btnServicesTitle || "📋 Xizmatlar";
-    const btnPrc = sets.btnPricesTitle || "💰 E'lonlar";
-    const btnOrd = sets.btnOrderTitle || "🛒 Buyurtma";
+    const btnSrv = sets.btnServicesTitle || "hide";
+    const btnPrc = sets.btnPricesTitle || "hide";
+    const btnOrd = sets.btnOrderTitle || "hide";
     const btnCnt = sets.btnContactTitle || "📞 Bog'lanish";
 
     let defaultRow1 = [];
-    if (btnSrv !== "hide") defaultRow1.push(btnSrv);
-    if (btnPrc !== "hide") defaultRow1.push(btnPrc);
+    if (btnSrv !== "hide" && btnSrv !== "") defaultRow1.push(btnSrv);
+    if (btnPrc !== "hide" && btnPrc !== "") defaultRow1.push(btnPrc);
 
     let defaultRow2 = [];
-    if (btnOrd !== "hide") defaultRow2.push(btnOrd);
-    if (btnCnt !== "hide") defaultRow2.push(btnCnt);
+    if (btnOrd !== "hide" && btnOrd !== "") defaultRow2.push(btnOrd);
+    if (btnCnt !== "hide" && btnCnt !== "") defaultRow2.push(btnCnt);
 
     let keyboard = [];
     if (defaultRow1.length > 0) keyboard.push(defaultRow1);
