@@ -366,7 +366,7 @@ const addCustomBtnWizard = new Scenes.WizardScene(
         if (!ctx.message || !ctx.message.text) return;
         ctx.wizard.state.btnTitle = ctx.message.text;
         
-        ctx.reply("Zo'r! Endi shu tugma bosilganda qanday matn (javob) qaytarishini yozing (karta raqami, manzil, karta egasi hkz):");
+        ctx.reply("Zo'r! Endi qo'shmoqchi bo'lganotingiz maxsus ma'lumotni shu botga yuboring.\nMasalan: Matn yozishingiz mumkin, yoki Rasm yuborib tagiga matn (karta raqam, manzil hkz) yozishingiz mumkin:");
         return ctx.wizard.next();
     },
     (ctx) => {
@@ -374,14 +374,27 @@ const addCustomBtnWizard = new Scenes.WizardScene(
             ctx.reply("Bekor qilindi.", getAdminMenu());
             return ctx.scene.leave();
         }
-        if (!ctx.message || !ctx.message.text) return;
+        
+        let mediaId = null;
+        let text = ctx.message.text || ctx.message.caption || "";
+
+        if (ctx.message && ctx.message.photo) {
+            // Eng katta / sifatli rasmni olish
+            mediaId = ctx.message.photo[ctx.message.photo.length - 1].file_id;
+        }
+
+        if (!text && !mediaId) {
+            ctx.reply("Iltimos, rasm yoki matn kiriting.");
+            return;
+        }
         
         const data = loadData();
         if (!data.customButtons) data.customButtons = [];
         data.customButtons.push({
             id: "btn_" + Date.now(),
             title: ctx.wizard.state.btnTitle,
-            text: ctx.message.text
+            text: text,
+            mediaId: mediaId
         });
         saveData(data);
         
@@ -509,7 +522,7 @@ function getAdminMenu() {
 function isAdmin(ctx) {
     const data = loadData();
     const adminEnv = process.env.ADMIN_CHAT_ID;
-    return String(ctx.from.id) === String(adminEnv) || data.admins.includes(ctx.from.id);
+    return String(ctx.from.id) === String(adminEnv) || (data.admins && data.admins.some(a => String(a) === String(ctx.from.id)));
 }
 
 // -------------------------------------------------------------
@@ -702,7 +715,11 @@ bot.on("text", (ctx) => {
     if (data.customButtons) {
         const customBtn = data.customButtons.find(b => b.title === msgTextOriginal);
         if (customBtn) {
-            return ctx.reply(customBtn.text, getMainMenu(ctx.from.id));
+            if (customBtn.mediaId) {
+                return ctx.replyWithPhoto(customBtn.mediaId, { caption: customBtn.text, ...getMainMenu(ctx.from.id) }).catch(()=>{});
+            } else {
+                return ctx.reply(customBtn.text, getMainMenu(ctx.from.id));
+            }
         }
     }
 
@@ -791,7 +808,7 @@ app.post("/api/check-admin", (req, res) => {
     
     const data = loadData();
     const adminEnv = process.env.ADMIN_CHAT_ID;
-    const isAdm = String(userId) === String(adminEnv) || (data.admins && data.admins.includes(parseInt(userId, 10)));
+    const isAdm = String(userId) === String(adminEnv) || (data.admins && data.admins.some(a => String(a) === String(userId)));
     res.json({ isAdmin: isAdm });
 });
 
@@ -800,7 +817,7 @@ app.post("/api/prices", (req, res) => {
     const { userId, text, type, customImgUrl } = req.body;
     const data = loadData();
     const adminEnv = process.env.ADMIN_CHAT_ID;
-    const isAdm = String(userId) === String(adminEnv) || (data.admins && data.admins.includes(parseInt(userId, 10)));
+    const isAdm = String(userId) === String(adminEnv) || (data.admins && data.admins.some(a => String(a) === String(userId)));
     
     if (!isAdm) return res.status(403).json({ error: "Unauthorized" });
 
@@ -842,7 +859,7 @@ app.post("/api/stats", (req, res) => {
     const { userId } = req.body;
     const data = loadData();
     const adminEnv = process.env.ADMIN_CHAT_ID;
-    const isAdm = String(userId) === String(adminEnv) || (data.admins && data.admins.includes(parseInt(userId, 10)));
+    const isAdm = String(userId) === String(adminEnv) || (data.admins && data.admins.some(a => String(a) === String(userId)));
     
     if (!isAdm) return res.status(403).json({ error: "Unauthorized" });
 
@@ -857,7 +874,7 @@ app.post("/api/settings", (req, res) => {
     const { userId, phone, address } = req.body;
     const data = loadData();
     const adminEnv = process.env.ADMIN_CHAT_ID;
-    const isAdm = String(userId) === String(adminEnv) || (data.admins && data.admins.includes(parseInt(userId, 10)));
+    const isAdm = String(userId) === String(adminEnv) || (data.admins && data.admins.some(a => String(a) === String(userId)));
     
     if (!isAdm) return res.status(403).json({ error: "Unauthorized" });
 
