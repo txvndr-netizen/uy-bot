@@ -595,7 +595,10 @@
                         category: pCategory
                     })
                 });
-                if(!req.ok) throw new Error("Server qabul qilmadi");
+                if(!req.ok) {
+                    const errRes = await req.json().catch(()=>({}));
+                    throw new Error(`Xato kodi: ${req.status} (${errRes.error || 'Server xatosi'})`);
+                }
                 
                 // Formani tozalaymiz (qotib qolmasligi uchun)
                 document.getElementById('addText').value = "";
