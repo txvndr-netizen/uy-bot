@@ -595,6 +595,25 @@ bot.on("web_app_data", async (ctx) => {
     }
 });
 
+bot.on("text", (ctx) => {
+    const msg = ctx.message.text.toLowerCase();
+    
+    // Asosiy menyu tugmalari emasligini tekshiramiz
+    if (msg.startsWith("/")) return;
+
+    if (msg.includes("uy") || msg.includes("kvartira") || msg.includes("narx") || msg.includes("sotaman") || msg.includes("olaman") || msg.includes("ijara") || msg.includes("hovli") || msg.includes("uchastka") || msg.includes("dom") || msg.includes("sotib")) {
+        
+        if (msg.includes("sotaman") || msg.includes("ijaraga beraman")) {
+            return ctx.reply("Siz uyingizni sotmoqchi yoki ijaraga bermoqchimisiz? Unda 📞 Bog'lanish menyusiga o'tib, to'g'ridan-to'g'ri menedjer bilan aloqaga chiqing va obyektingiz rasmlarini yuboring.", getMainMenu());
+        }
+        
+        return ctx.reply("Sizga mos uylarni topish yoki ijaraga olish bo'yicha eng zo'r takliflarni ko'rish uchun 🏠 Mini Appni oching yoki 💰 E'lonlar tugmasini bosing!", getMainMenu());
+    }
+
+    // Tushunilmagan boshqa matnlar uchrashsa
+    ctx.reply("Sizga qanday yordam bera olaman? Biz bilan ishonchli uy oling yoki soting! Menga uylar haqida nima so'ramoqchi bo'lsangiz yozing yoki tugmalardan foydalaning.", getMainMenu());
+});
+
 bot.launch().then(() => {
     console.log("Bot muvaffaqiyatli ishga tushdi / Bot is running!");
 }).catch(err => {
@@ -607,6 +626,8 @@ bot.launch().then(() => {
 const express = require("express");
 const app = express();
 
+app.use(express.json()); // POST tana(body) o'qish uchun
+
 // "public" papkasidagi html fayllarni serverga yuklash
 app.use(express.static(path.join(__dirname, "public")));
 
@@ -618,6 +639,59 @@ app.get("/api/data", (req, res) => {
         services: data.services || [],
         settings: data.settings || {}
     });
+});
+
+// Adminni tekshirish API
+app.post("/api/check-admin", (req, res) => {
+    const { userId } = req.body;
+    if (!userId) return res.json({ isAdmin: false });
+    
+    const data = loadData();
+    const adminEnv = process.env.ADMIN_CHAT_ID;
+    const isAdm = String(userId) === String(adminEnv) || (data.admins && data.admins.includes(parseInt(userId, 10)));
+    res.json({ isAdmin: isAdm });
+});
+
+// E'lon qo'shish (App ichidan)
+app.post("/api/prices", (req, res) => {
+    const { userId, text, type, customImgUrl } = req.body;
+    const data = loadData();
+    const adminEnv = process.env.ADMIN_CHAT_ID;
+    const isAdm = String(userId) === String(adminEnv) || (data.admins && data.admins.includes(parseInt(userId, 10)));
+    
+    if (!isAdm) return res.status(403).json({ error: "Unauthorized" });
+
+    const newObj = {
+        id: Date.now(),
+        type: type || "photo",
+        text: text || "",
+        mediaId: "", // Appdan yuklanganda asosan link ishlatamiz
+        customImgUrl: customImgUrl || "" 
+    };
+
+    data.prices.unshift(newObj); // Yangisini eng boshiga qo'shish
+    saveData(data);
+    res.json({ success: true, item: newObj });
+});
+
+// E'lonni o'chirish (App ichidan)
+app.delete("/api/prices/:id", (req, res) => {
+    const data = loadData();
+    data.prices = data.prices.filter(p => String(p.id) !== String(req.params.id));
+    saveData(data);
+    res.json({ success: true });
+});
+
+// E'lonni yangilash (asosan Sotildi maqomini berish uchun)
+app.put("/api/prices/:id", (req, res) => {
+    const { isSold } = req.body;
+    const data = loadData();
+    const item = data.prices.find(p => String(p.id) === String(req.params.id));
+    if (item) {
+        item.isSold = isSold;
+        saveData(data);
+    }
+    res.json({ success: true });
 });
 
 const PORT = process.env.PORT || 3000;

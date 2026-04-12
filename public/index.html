@@ -200,6 +200,10 @@
             Yuklanmoqda...
         </div>
         <div id="realItemsContainer"></div>
+
+        <button id="adminAddBtn" class="header-btn" style="display:none; position:fixed; bottom:20px; right:20px; z-index:99; background: var(--price); border-radius: 50px; font-weight:bold; box-shadow: 0 4px 10px rgba(0,0,0,0.5);" onclick="showAddView()">
+            ➕ Yangi Qo'shish
+        </button>
     </div>
 
 
@@ -214,6 +218,37 @@
             <div id="detailTitle" class="detail-title"></div>
             <div id="detailDesc" class="detail-desc"></div>
             <button id="detailBuyBtn" class="btn-primary" onclick="openCheckout()">Sotib olish / Band qilish</button>
+
+            <div id="adminDetailActions" style="display:none; margin-top:20px; display:flex; flex-direction:column; gap:10px;">
+                <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin: 10px 0;">
+                <p style="color:#94a3b8; font-size:12px; text-align:center;">Admin Boshqaruvi</p>
+                <button class="btn-primary" style="background:#10b981;" onclick="markAsSold()">✅ "Sotildi" qilish</button>
+                <button class="btn-primary" style="background:#ef4444;" onclick="deleteItem()">🗑 O'chirish</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD VIEW -->
+    <div id="addView" style="display:none; animation: fadeIn 0.4s ease forwards;">
+        <button class="header-btn" onclick="showList()">
+            ← Orqaga
+        </button>
+        
+        <div class="glass" style="padding: 20px;">
+            <h2 style="margin-top: 0; font-size: 22px;">Yangi E'lon Qo'shish</h2>
+            <p style="color: #94a3b8; font-size: 14px; margin-bottom: 24px;">Bu joydan adminlar to'g'ridan-to'g'ri yangi uy qo'sha oladi.</p>
+
+            <div class="input-group">
+                <label for="addImg">Rasm Manzili URL (Ixtiyoriy)</label>
+                <input type="text" id="addImg" placeholder="https://...jpg">
+            </div>
+
+            <div class="input-group">
+                <label for="addText">Narxi va to'liq ma'lumoti</label>
+                <textarea id="addText" style="width: 100%; padding: 14px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.2); background: rgba(0, 0, 0, 0.2); color: #fff; font-size: 16px; outline: none; margin-bottom: 20px;" rows="5" placeholder="Narxi: 50.000 so'm&#10;Manzil: Toshkent / Yunusobod&#10;Xonalar: 3 ta"></textarea>
+            </div>
+
+            <button class="btn-primary" onclick="submitNewItem()">Bazasiga Qo'shish 📥</button>
         </div>
     </div>
 
@@ -263,9 +298,30 @@
         tg.ready();
 
         let items = {};
+        let isAdmin = false;
+        let tgUserId = null;
+
+        try {
+            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                tgUserId = tg.initDataUnsafe.user.id;
+            }
+        } catch(e) {}
 
         async function loadData() {
             try {
+                if (tgUserId) {
+                    const chk = await fetch('/api/check-admin', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId: tgUserId })
+                    });
+                    const adRes = await chk.json();
+                    isAdmin = adRes.isAdmin;
+                    if (isAdmin) {
+                        document.getElementById('adminAddBtn').style.display = 'block';
+                    }
+                }
+
                 const res = await fetch('/api/data');
                 const pData = await res.json();
                 const container = document.getElementById('realItemsContainer');
@@ -295,17 +351,26 @@
                 items = {}; // map by id
                 if (pData.prices) {
                     pData.prices.forEach(priceObj => {
+                        let finalImg = priceObj.customImgUrl || appImage;
+                        
                         items[priceObj.id] = {
                             id: priceObj.id,
                             title: priceObj.text.split('\n')[0].substring(0, 40) + '...', // short title
                             price: '',
-                            img: appImage, // DYNAMIC DEFAULT APP IMAGE
-                            desc: priceObj.text
+                            img: finalImg, 
+                            desc: priceObj.text,
+                            isSold: !!priceObj.isSold
                         };
 
+                        let soldBadge = priceObj.isSold ? `<div style="position:absolute; top:10px; right:10px; background:#ef4444; color:white; padding:6px 10px; border-radius:8px; font-weight:800; font-size:12px; z-index:10; box-shadow: 0 2px 4px rgba(0,0,0,0.5);">SOTILDI ✅</div>` : '';
+                        let opacityStyle = priceObj.isSold ? 'opacity: 0.6;' : '';
+
                         container.innerHTML += `
-                            <div class="card glass" onclick="openDetail('${priceObj.id}')">
-                                <img src="${appImage}" alt="Uy" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1568605114967-8130f3a36994';">
+                            <div class="card glass" onclick="openDetail('${priceObj.id}')" style="${opacityStyle}">
+                                <div style="position:relative;">
+                                    ${soldBadge}
+                                    <img src="${finalImg}" alt="Uy" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1568605114967-8130f3a36994';">
+                                </div>
                                 <div class="price"></div>
                                 <div class="meta" style="font-weight: 600; color: #fff; white-space: pre-line;">${items[priceObj.id].title}</div>
                                 <div class="meta" style="margin-top: 10px; color: #38bdf8;">Batafsil ko'rish ➔</div>
@@ -325,6 +390,7 @@
         const listView = document.getElementById('listView');
         const detailView = document.getElementById('detailView');
         const checkoutView = document.getElementById('checkoutView');
+        const addView = document.getElementById('addView');
 
         let currentItem = null;
 
@@ -332,7 +398,16 @@
         function showList() {
             detailView.style.display = 'none';
             checkoutView.style.display = 'none';
+            addView.style.display = 'none';
             listView.style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        function showAddView() {
+            listView.style.display = 'none';
+            detailView.style.display = 'none';
+            checkoutView.style.display = 'none';
+            addView.style.display = 'block';
             window.scrollTo(0, 0);
         }
 
@@ -344,11 +419,28 @@
             document.getElementById('detailImg').src = currentItem.img;
             document.getElementById('detailPrice').innerText = currentItem.price;
             document.getElementById('detailTitle').innerText = currentItem.title;
-            document.getElementById('detailDesc').innerText = currentItem.desc;
+            
+            let descHtml = currentItem.desc;
+            if (currentItem.isSold) {
+                descHtml = "<b><span style='color:#ef4444'>BU OBYEKT SOTILGAN</span></b><br><br>" + descHtml;
+                document.getElementById('detailBuyBtn').style.display = 'none';
+            } else {
+                document.getElementById('detailBuyBtn').style.display = 'block';
+            }
+            document.getElementById('detailDesc').innerHTML = descHtml.replace(/\n/g, "<br>");
+
+            // Amin Actions
+            const acts = document.getElementById('adminDetailActions');
+            if (isAdmin) {
+                acts.style.display = 'flex';
+            } else {
+                acts.style.display = 'none';
+            }
 
             // Switch views
             listView.style.display = 'none';
             checkoutView.style.display = 'none';
+            addView.style.display = 'none';
             detailView.style.display = 'block';
             window.scrollTo(0, 0);
         }
@@ -412,6 +504,53 @@
                     alert("Xatolik yuz berdi. Iltimos Mini App ni bot klaviaturasidan oching.");
                 }
             }
+        }
+
+        async function submitNewItem() {
+            const txt = document.getElementById('addText').value;
+            const img = document.getElementById('addImg').value;
+            if(!txt) {
+                return (tg.showAlert ? tg.showAlert("Ma'lumotni kiritish majburiy!") : alert("Ma'lumot majburiy!"));
+            }
+            
+            try {
+                const req = await fetch('/api/prices', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: tgUserId, text: txt, customImgUrl: img, type: "photo" })
+                });
+                const res = await req.json();
+                if(res.success) {
+                    (tg.showAlert ? tg.showAlert("Muvaffaqiyatli qo'shildi!") : alert("Qo'shildi"));
+                    location.reload();
+                } else {
+                    (tg.showAlert ? tg.showAlert("Siz admin emassiz!") : alert("Siz admin emassiz!"));
+                }
+            } catch(e) { 
+                alert("Xatolik:" + e.message); 
+            }
+        }
+
+        async function deleteItem() {
+            if(!confirm("Buni butunlay o'chirib yuborasizmi?")) return;
+            try {
+                await fetch('/api/prices/' + currentItem.id, { method: 'DELETE' });
+                if(tg.showAlert) tg.showAlert("O'chirildi!");
+                location.reload();
+            } catch(e) { alert("Xatolik:" + e.message); }
+        }
+
+        async function markAsSold() {
+            if(!confirm("Haqiqatan ham 'Sotildi' qilmoqchimisiz?")) return;
+            try {
+                await fetch('/api/prices/' + currentItem.id, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ isSold: true })
+                });
+                if(tg.showAlert) tg.showAlert("Belgilandi!");
+                location.reload();
+            } catch(e) { alert("Xatolik:" + e.message); }
         }
 
     </script>
