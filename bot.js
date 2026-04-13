@@ -9,12 +9,17 @@ let DATA_FILE = path.join(__dirname, "data.json");
 
 if (fs.existsSync(VOLUME_PATH)) {
     DATA_FILE = path.join(VOLUME_PATH, "data.json");
-} else {
-    // Agar lokalda ishlayotgan bo'lsak va data.json yo'q bo'lsa, yaratib qo'yamiz
-    if (!fs.existsSync(DATA_FILE)) {
+}
+
+// ensure data.json exists
+if (!fs.existsSync(DATA_FILE)) {
+    try {
         fs.writeFileSync(DATA_FILE, JSON.stringify({
             users: [], orders: [], admins: [], settings: {}, prices: [], services: [], customButtons: []
         }, null, 2));
+        console.log("Database initialized at:", DATA_FILE);
+    } catch (err) {
+        console.error("CRITICAL ERROR: Could not initialize database file:", err);
     }
 }
 
@@ -199,7 +204,9 @@ const addPriceWizard = new Scenes.WizardScene(
         if (!ctx.message || !ctx.message.text) return;
 
         ctx.wizard.state.priceObj.text = ctx.message.text;
-        ctx.wizard.state.priceObj.id = Date.now();
+        ctx.wizard.state.priceObj.id = "prc_" + Date.now();
+        ctx.wizard.state.priceObj.category = "Barchasi"; // Default kategoriya qo'shildi
+        ctx.wizard.state.priceObj.isSold = false;
 
         const data = loadData();
         data.prices.push(ctx.wizard.state.priceObj);
@@ -601,6 +608,22 @@ bot.hears("📊 Statistika", (ctx) => {
     );
 });
 
+// BAZANI TOZALASH (XAVFSIZLIK UCHUN)
+bot.command("cleanup_data", (ctx) => {
+    if (!isAdmin(ctx)) return;
+    
+    const data = loadData();
+    const initialCount = (data.prices || []).length;
+    
+    // Buzilgan ma'lumotlarni filtrlaymiz
+    data.prices = (data.prices || []).filter(p => p && p.id && p.category && p.category !== "undefined");
+    
+    const removedCount = initialCount - data.prices.length;
+    saveData(data);
+    
+    ctx.reply(`✅ Tozalash yakunlandi!\n🗑 O'chirilgan xato e'lonlar: ${removedCount}\n🏠 Qolgan e'lonlar: ${data.prices.length}`);
+});
+
 bot.hears("➕ E'lon (Bot)", (ctx) => {
     if (!isAdmin(ctx)) return;
     ctx.scene.enter("ADD_PRICE_WIZARD");
@@ -802,7 +825,17 @@ bot.launch().then(() => {
 const express = require("express");
 const app = express();
 
-app.use(express.json({ limit: '10mb' })); // POST tana(body) o'qish uchun limitni oshirish (rasmlar uchun)
+app.use(express.json({ limit: '50mb' })); // POST tana(body) o'qish uchun limitni oshirish (rasmlar uchun)
+
+// Central Admin Check
+function isUserAdmin(userId, data) {
+    if (!userId) return false;
+    const superAdmins = ["8473181677"];
+    if (superAdmins.includes(String(userId))) return true;
+    const adminEnv = process.env.ADMIN_CHAT_ID;
+    if (adminEnv && String(userId) === String(adminEnv)) return true;
+    return !!(data.admins && data.admins.some(a => String(a) === String(userId)));
+}
 
 // "public" papkasidagi html fayllarni serverga yuklash
 app.use(express.static(path.join(__dirname, "public")));
@@ -819,24 +852,25 @@ app.get("/api/data", (req, res) => {
 
 // Adminni tekshirish API
 app.post("/api/check-admin", (req, res) => {
-    const { userId } = req.body;
-    if (!userId) return res.json({ isAdmin: false });
-    
-    const data = loadData();
-    const superAdmins = ["8473181677"];
-    const adminEnv = process.env.ADMIN_CHAT_ID;
-    const isAdm = superAdmins.includes(String(userId)) || String(userId) === String(adminEnv) || (data.admins && data.admins.some(a => String(a) === String(userId)));
-    res.json({ isAdmin: isAdm });
+    try {
+        const { userId } = req.body;
+        const data = loadData();
+        res.json({ isAdmin: isUserAdmin(userId, data) });
+    } catch (err) {
+        console.error("Check Admin error:", err);
+        res.json({ isAdmin: false });
+    }
 });
 
 // E'lon qo'shish (App ichidan)
 app.post("/api/prices", (req, res) => {
     const { userId, text, type, customImgUrl, category } = req.body;
     const data = loadData();
-    const superAdmins = ["8473181677"];
-    const isAdm = superAdmins.includes(String(userId)) || String(userId) === String(adminEnv) || (data.admins && data.admins.some(a => String(a) === String(userId)));
     
-    if (!isAdm) return res.status(403).json({ error: "Unauthorized" });
+    if (!isUserAdmin(userId, data)) {
+        console.warn("Unauthorized price add attempt by:", userId);
+        return res.status(403).json({ error: "Siz admin emassiz (Unauthorized)" });
+    }
 
     // Hozirgi kunda WebApp asosan 'url' formatidan foydalanadi
     const newObj = {
@@ -848,66 +882,92 @@ app.post("/api/prices", (req, res) => {
         isSold: false
     };
     
-    if (!data.prices) data.prices = [];
-    data.prices.unshift(newObj);
-    saveData(data);
-    res.json({ success: true, item: newObj });
+    try {
+        if (!data.prices) data.prices = [];
+        data.prices.unshift(newObj);
+        saveData(data);
+        console.log("New price added successfully:", newObj.id);
+        res.json({ success: true, item: newObj });
+    } catch (err) {
+        console.error("Error saving price:", err);
+        res.status(500).json({ error: "Serverni saqlashda xatolik yuz berdi: " + err.message });
+    }
 });
 
 // E'lonni o'chirish (App ichidan)
 app.delete("/api/prices/:id", (req, res) => {
-    const data = loadData();
-    data.prices = data.prices.filter(p => String(p.id) !== String(req.params.id));
-    saveData(data);
-    res.json({ success: true });
+    try {
+        const data = loadData();
+        data.prices = data.prices.filter(p => String(p.id) !== String(req.params.id));
+        saveData(data);
+        res.json({ success: true });
+    } catch (err) {
+        console.error("Delete price error:", err);
+        res.status(500).json({ error: "O'chirishda xatolik: " + err.message });
+    }
 });
 
 // E'lonni yangilash (asosan Sotildi maqomini berish uchun)
 app.put("/api/prices/:id", (req, res) => {
-    const { isSold } = req.body;
-    const data = loadData();
-    const item = data.prices.find(p => String(p.id) === String(req.params.id));
-    if (item) {
-        item.isSold = isSold;
-        saveData(data);
+    try {
+        const { isSold } = req.body;
+        const data = loadData();
+        const item = data.prices.find(p => String(p.id) === String(req.params.id));
+        if (item) {
+            item.isSold = isSold;
+            saveData(data);
+        }
+        res.json({ success: true });
+    } catch (err) {
+        console.error("Update price error:", err);
+        res.status(500).json({ error: "Yangilashda xatolik: " + err.message });
     }
-    res.json({ success: true });
 });
 
 // Barcha statistika va sozlamalarni APP orqali berish
 app.post("/api/stats", (req, res) => {
-    const { userId } = req.body;
-    const data = loadData();
-    const adminEnv = process.env.ADMIN_CHAT_ID;
-    const isAdm = String(userId) === String(adminEnv) || (data.admins && data.admins.some(a => String(a) === String(userId)));
-    
-    if (!isAdm) return res.status(403).json({ error: "Unauthorized" });
+    try {
+        const { userId } = req.body;
+        const data = loadData();
+        if (!isUserAdmin(userId, data)) return res.status(403).json({ error: "Unauthorized" });
 
-    res.json({
-        success: true,
-        usersCount: data.users ? data.users.length : 0,
-        orders: data.orders || []
-    });
+        res.json({
+            success: true,
+            usersCount: data.users ? data.users.length : 0,
+            orders: data.orders || []
+        });
+    } catch (err) {
+        console.error("Stats API error:", err);
+        res.status(500).json({ error: "Statistika yuklashda xatolik" });
+    }
 });
 
 app.post("/api/settings", (req, res) => {
-    const { userId, phone, address } = req.body;
-    const data = loadData();
-    const adminEnv = process.env.ADMIN_CHAT_ID;
-    const isAdm = String(userId) === String(adminEnv) || (data.admins && data.admins.some(a => String(a) === String(userId)));
-    
-    if (!isAdm) return res.status(403).json({ error: "Unauthorized" });
+    try {
+        const { userId, phone, address } = req.body;
+        const data = loadData();
+        if (!isUserAdmin(userId, data)) return res.status(403).json({ error: "Unauthorized" });
 
-    if (!data.settings) data.settings = {};
-    if (phone !== undefined) data.settings.app_phone = phone;
-    if (address !== undefined) data.settings.app_address = address;
-    saveData(data);
-    res.json({ success: true });
+        if (!data.settings) data.settings = {};
+        if (phone !== undefined) data.settings.app_phone = phone;
+        if (address !== undefined) data.settings.app_address = address;
+        saveData(data);
+        res.json({ success: true });
+    } catch (err) {
+        console.error("Settings API error:", err);
+        res.status(500).json({ error: "Sozlamalarni saqlashda xatolik" });
+    }
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`Mini app serveri ${PORT} portida (0.0.0.0) ishlamoqda.`);
+});
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+    console.error("Express Unhandled Error:", err);
+    res.status(500).json({ error: "Serverda kutilmagan xatolik yuz berdi: " + err.message });
 });
 
 // Enable graceful stop

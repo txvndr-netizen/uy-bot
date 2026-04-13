@@ -7,59 +7,7 @@
       "joined_at": "2026-04-10T17:28:10.124Z"
     }
   ],
-  "orders": [
-    {
-      "user_id": 8473181677,
-      "username": "",
-      "first_name": "𝗧𝗮𝘅𝗶𝗿𝗼𝘃",
-      "order_name": "Ttru",
-      "phone": "0 dan boshlamoqchi bo‘lsangiz",
-      "property": "Fif",
-      "paymentType": "Ty",
-      "comment": "G",
-      "created_at": "2026-04-10T17:30:30.697Z"
-    },
-    {
-      "id": 1775849188295,
-      "name": "",
-      "phone": "",
-      "service": "🛒 Buyurtma berish",
-      "user_id": 8473181677,
-      "created_at": "2026-04-10T19:26:28.295Z"
-    },
-    {
-      "id": 1775849188298,
-      "name": "",
-      "phone": "",
-      "service": "🛒 Buyurtma berish",
-      "user_id": 8473181677,
-      "created_at": "2026-04-10T19:26:28.298Z"
-    },
-    {
-      "id": 1775849188299,
-      "name": "",
-      "phone": "",
-      "service": "🛒 Buyurtma berish",
-      "user_id": 8473181677,
-      "created_at": "2026-04-10T19:26:28.299Z"
-    },
-    {
-      "id": 1775849272217,
-      "name": "nhv",
-      "phone": "mjhvn",
-      "service": "Xonadonlar",
-      "user_id": 8473181677,
-      "created_at": "2026-04-10T19:27:52.217Z"
-    },
-    {
-      "id": 1775849590445,
-      "name": "hmg",
-      "phone": "mhyf",
-      "service": "Kvartiralar",
-      "user_id": 8473181677,
-      "created_at": "2026-04-10T19:33:10.445Z"
-    }
-  ],
+  "orders": [],
   "admins": [8473181677],
   "settings": {
     "telegram": "@admin_username",
@@ -68,14 +16,7 @@
     "btnPricesTitle": "hide",
     "btnOrderTitle": "hide"
   },
-  "prices": [
-    {
-      "type": "photo",
-      "mediaId": "AgACAgIAAxkBAAOLadlQX80QEnzx6cPWSJUR4n74LpEAAhAZaxsiO8hKG0E-2A9ebf0BAAMCAAN5AAM7BA",
-      "text": "3 хона 4-этаж \n5 этажли подездний дом \nЖихозлари колади\nГалаба шох кучаси \n18-мактаб \nВасход бозори якин .\nИратека булади\n535mln",
-      "id": 1775849571376
-    }
-  ],
+  "prices": [],
   "services": [
     {
       "id": "xonadon",

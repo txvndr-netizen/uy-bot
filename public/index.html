@@ -398,7 +398,8 @@
             .then(data => {
                 const headerEl = document.getElementById('topHeaderTitle');
                 if(headerEl) headerEl.innerText = data.settings?.app_button_text || "Katalog";
-                globalPrices = data.prices || [];
+                // Ma'lumotlarni filtrlab olish (Xatoliklarni oldini olish uchun)
+                globalPrices = (data.prices || []).filter(p => p && p.id);
                 renderList();
             });
 
@@ -463,9 +464,9 @@
             const q = document.getElementById("searchInput")?.value.toLowerCase() || "";
             let favs = JSON.parse(localStorage.getItem('favs') || "[]");
             
-            let filtered = globalPrices;
+            let filtered = globalPrices.filter(p => p !== null && p !== undefined);
             if(isFavMode) filtered = filtered.filter(p => favs.includes(p.id));
-            else if(curCat !== "Barchasi") filtered = filtered.filter(p => p.category === curCat);
+            else if(curCat !== "Barchasi") filtered = filtered.filter(p => (p.category || 'Barchasi') === curCat);
             if(q) filtered = filtered.filter(p => (p.text||"").toLowerCase().includes(q));
 
             if (filtered.length === 0) {
@@ -478,9 +479,9 @@
                 let img = p.mediaId || "";
                 // Agar mediaId Telegram file_id bo'lsa (URL emas), placeholder ko'rsatamiz
                 if (img && !img.startsWith('http') && !img.startsWith('data:image')) {
-                    img = "https://placehold.co/400x300?text=Bot+orqali+yuklangan";
+                    img = "https://placehold.co/400x300?text=Rasm+Yuklanmoqda"; // Neutral text
                 } else if (!img) {
-                    img = "https://placehold.co/400x300?text=Rasm+yo'q";
+                    img = "https://placehold.co/400x300?text=Rasm+Mavjud+Emas";
                 }
 
                 const isS = p.isSold;
@@ -503,7 +504,11 @@
         }
 
         function openDetail(id) {
-            currentItem = globalPrices.find(p => p.id === id);
+            if (!globalPrices || !globalPrices.length) return alert("Ma'lumotlar yuklanmagan.");
+            // Har qanday holat uchun xavfsiz qidiruv
+            currentItem = globalPrices.find(p => p && p.id && String(p.id) === String(id));
+            if (!currentItem) return alert("E'lon topilmadi yoki o'chirilgan.");
+            
             const cat = currentItem.category || 'Mulk';
             const imgUrl = currentItem.mediaId || "";
             
