@@ -4,133 +4,88 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Mening Platformam</title>
-    <!-- Modern Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --surface: rgba(20, 20, 20, 0.95);
             --bg-dark: #050505;
-            --primary: #D4AF37; /* Gold */
+            --primary: #D4AF37; 
             --primary-dark: #B8860B;
             --secondary: #ffffff;
             --text-main: #f8f8f8;
             --text-muted: #a0a0a0;
             --danger: #ff4d4d;
             --border: rgba(212, 175, 55, 0.2);
-            --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.6);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background: var(--bg-dark);
-            color: var(--text-main);
-            overflow-x: hidden;
-            padding-top: 60px;
+            background: var(--bg-dark); color: var(--text-main); overflow-x: hidden; padding-top: 60px;
         }
 
-        /* HEADER */
         .app-header {
             position: fixed; top: 0; left: 0; right: 0; height: 60px;
-            background: rgba(5, 5, 5, 0.95);
-            border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 16px; z-index: 1000;
+            background: rgba(5, 5, 5, 0.95); border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 16px; z-index: 1000;
         }
 
-        .header-btn {
-            background: none; border: none; font-size: 24px; color: var(--secondary); cursor: pointer;
-        }
-        
-        .header-title { font-size: 18px; font-weight: 700; color: var(--primary); letter-spacing: 1px; text-transform: uppercase; }
+        .header-btn { background: none; border: none; font-size: 24px; color: var(--secondary); cursor: pointer; }
+        .header-title { font-size: 18px; font-weight: 700; color: var(--primary); text-transform: uppercase; }
 
-        /* SIDEBAR */
         .sidebar {
             position: fixed; top: 0; left: -300px; width: 280px; height: 100vh;
-            background: rgba(15, 15, 15, 0.95); backdrop-filter: blur(10px);
-            z-index: 2000; border-right: 1px solid var(--border);
-            transition: left 0.3s; display: flex; flex-direction: column;
+            background: rgba(15, 15, 15, 0.95); backdrop-filter: blur(10px); z-index: 2000;
+            border-right: 1px solid var(--border); transition: left 0.3s; display: flex; flex-direction: column;
         }
         .sidebar.open { left: 0; }
 
         .sidebar-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0, 0, 0, 0.7); z-index: 1500;
-            opacity: 0; pointer-events: none; transition: opacity 0.3s;
+            background: rgba(0, 0, 0, 0.7); z-index: 1500; opacity: 0; pointer-events: none; transition: opacity 0.3s;
         }
         .sidebar-overlay.open { opacity: 1; pointer-events: all; }
 
         .sidebar-header { padding: 40px 20px 24px; border-bottom: 1px solid var(--border); }
         .profile-name { font-size: 16px; font-weight: 700; color: var(--primary); }
 
-        .menu-item {
-            padding: 16px 20px; font-size: 15px; font-weight: 500; 
-            border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer;
-        }
+        .menu-item { padding: 16px 20px; font-size: 15px; font-weight: 500; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
         .menu-item:active { background: rgba(255,255,255,0.1); }
 
-        /* VIEWS */
-        .page-container { padding: 16px; animation: fadeIn 0.3s ease; display: none; }
+        .page-container { padding: 16px; display: none; }
         .page-container.active { display: block; }
+        .back-nav { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600; color: var(--primary); padding: 8px 0; margin-bottom: 16px; cursor: pointer; }
 
-        .back-nav {
-            display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600;
-            color: var(--primary); padding: 8px 0; margin-bottom: 16px; cursor: pointer;
-        }
-
-        /* CARDS (Posts) */
-        .post-card {
-            background: #111; border: 1px solid var(--border);
-            border-radius: 16px; margin-bottom: 24px; overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-        }
-        .post-img { width: 100%; max-height: 400px; object-fit: contain; background: #000; display: block; }
+        .post-card { background: #111; border: 1px solid var(--border); border-radius: 16px; margin-bottom: 24px; overflow: hidden; }
+        .post-media { width: 100%; max-height: 400px; background: #000; display: block; object-fit: contain; }
         .post-content { padding: 16px; }
         .post-date { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
         .post-text { font-size: 15px; line-height: 1.6; white-space: pre-wrap; }
 
-        /* ADMIN DELETE BUTTON */
-        .btn-delete {
-            width: 100%; padding: 12px; background: rgba(255,0,0,0.1);
-            color: var(--danger); border: 1px solid var(--danger);
-            border-radius: 8px; font-weight: bold; margin-top: 16px; cursor: pointer;
-        }
+        .btn-delete { width: 100%; padding: 12px; background: rgba(255,0,0,0.1); color: var(--danger); border: 1px solid var(--danger); border-radius: 8px; font-weight: bold; margin-top: 16px; cursor: pointer; }
 
-        /* SETTINGS & ADD FORMS */
         .form-panel { background: var(--surface); padding: 20px; border-radius: 16px; border: 1px solid var(--border); }
         .input-group { margin-bottom: 16px; }
         .input-group label { display: block; margin-bottom: 8px; font-size: 13px; color: var(--text-muted); }
-        .input-group textarea, .input-group input {
-            width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--border);
-            background: #0a0a0a; color: #fff; font-size: 15px; outline: none;
-        }
-        .img-upload-box {
-            width: 100%; height: 160px; border: 2px dashed var(--primary);
-            background: rgba(212, 175, 55, 0.05); border-radius: 12px;
-            display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative;
-        }
-        .img-upload-box img { width: 100%; height: 100%; object-fit: cover; position: absolute; border-radius: 10px; display: none; }
+        .input-group textarea { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--border); background: #0a0a0a; color: #fff; font-size: 15px; outline: none; }
+        
+        .upload-box { width: 100%; padding:20px; border: 2px dashed var(--primary); background: rgba(212, 175, 55, 0.05); border-radius: 12px; text-align:center; cursor: pointer; position: relative; }
+        .upload-box p { color:var(--primary); font-weight:600; }
+        .upload-box audio, .upload-box video, .upload-box img { width: 100%; max-height: 200px; margin-top: 10px; display: none; object-fit:contain; border-radius:8px;}
 
-        .btn-primary {
-            width: 100%; padding: 16px; background: var(--primary);
-            color: #000; font-weight: 700; border: none; border-radius: 12px;
-            cursor: pointer; text-transform: uppercase; letter-spacing: 1px;
-        }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .btn-primary { width: 100%; padding: 16px; background: var(--primary); color: #000; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; text-transform: uppercase; }
+        .btn-primary:active { transform: scale(0.98); }
     </style>
 </head>
 <body>
 
-    <!-- HEADER -->
     <div class="app-header">
         <button class="header-btn" onclick="toggleSidebar()">☰</button>
         <div class="header-title">Arxiv / Kundalik</div>
         <div style="width: 24px;"></div>
     </div>
 
-    <!-- SIDEBAR -->
     <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
     <div id="sidebar" class="sidebar">
         <div class="sidebar-header">
@@ -151,31 +106,32 @@
         </div>
     </div>
 
-    <!-- VIEW: 1. LIST OF POSTS -->
+    <!-- LIST VIEW -->
     <div id="listView" class="page-container active">
-        <div id="posts-grid">
-            <div style="text-align:center; color:var(--text-muted); margin-top:40px;">Yuklanmoqda...</div>
-        </div>
+        <div id="posts-grid"><div style="text-align:center; margin-top:40px;">Yuklanmoqda...</div></div>
     </div>
 
-    <!-- VIEW: 2. ADD POST (ADMIN ONLY) -->
+    <!-- ADD VIEW -->
     <div id="addView" class="page-container">
         <div class="back-nav" onclick="navigate('listView')">← Orqaga</div>
         <div class="form-panel">
             <h2 style="font-size:18px; color:var(--primary); margin-bottom:20px;">Yangi Arxiv Qo'shish</h2>
             
             <div class="input-group">
-                <label>Rasm (Majburiy emas agar matn bo'lsa)</label>
-                <div class="img-upload-box" onclick="document.getElementById('addImgFile').click()">
-                    <div id="imgPreviewText" style="color:var(--primary); font-weight:600;">+ Rasm Tanlash</div>
-                    <img id="imgPreviewActual" src="">
+                <label>Media: Rasm, Video yoki Audio (Qo'shmaslik ham mumkin)</label>
+                <div class="upload-box" onclick="document.getElementById('addMediaFile').click()">
+                    <p id="mediaPreviewText">+ Fayl Tanlash</p>
+                    <img id="imgPreview" src="">
+                    <video id="vidPreview" controls></video>
+                    <audio id="audPreview" controls></audio>
                 </div>
-                <input type="file" id="addImgFile" accept="image/*" style="display:none;" onchange="handleImageSelect(event)">
+                <!-- Barcha formatlarni ruxsat beramiz! -->
+                <input type="file" id="addMediaFile" accept="image/*,video/*,audio/*" style="display:none;" onchange="handleFileSelect(event)">
             </div>
 
             <div class="input-group">
                 <label>Matn / Hikoya</label>
-                <textarea id="addText" rows="8" placeholder="Fikrlaringizni yozing..."></textarea>
+                <textarea id="addText" rows="6" placeholder="Fikrlaringizni yozing..."></textarea>
             </div>
 
             <button id="submitBtn" class="btn-primary" onclick="submitPost()">Tarmoqqa Joylash</button>
@@ -193,33 +149,23 @@
         let validUserId = tgUser?.id || urlParams.get('uid');
 
         let globalPosts = [];
-        let finalCompressedBase64 = "";
+        let selectedFile = null;
         let isAdmin = false;
 
-        if (tgUser) {
-            document.getElementById('userNameTxt').innerText = `${tgUser.first_name || 'Mehmon'}`.trim();
-        }
+        if (tgUser) document.getElementById('userNameTxt').innerText = `${tgUser.first_name || 'Mehmon'}`.trim();
         if (validUserId) {
             document.getElementById('userIdTxt').innerText = `ID: ${validUserId}`;
-            
-            // Check Admin Access
             fetch('/api/check-admin', {
                 method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ userId: validUserId })
             }).then(r=>r.json()).then(res => {
                 isAdmin = res.isAdmin;
                 if(isAdmin) document.getElementById('adminMenuSection').style.display = 'block';
-                loadPosts(); // Reload to render delete buttons if admin
+                loadPosts(); 
             }).catch(()=>{});
         }
 
-        // Fetch Posts
         function loadPosts() {
-            fetch('/api/posts')
-                .then(res => res.json())
-                .then(data => {
-                    globalPosts = data.posts || [];
-                    renderList();
-                });
+            fetch('/api/posts').then(res => res.json()).then(data => { globalPosts = data.posts || []; renderList(); });
         }
         loadPosts();
 
@@ -231,10 +177,7 @@
         function navigate(viewId) {
             ['listView', 'addView'].forEach(id => {
                 const el = document.getElementById(id);
-                if (el) {
-                    if (id === viewId) el.classList.add('active');
-                    else el.classList.remove('active');
-                }
+                if (el) { if (id === viewId) el.classList.add('active'); else el.classList.remove('active'); }
             });
             window.scrollTo(0,0);
         }
@@ -251,20 +194,26 @@
                 const dateObj = new Date(p.created_at);
                 const dateStr = dateObj.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
                 
-                let imgHtml = "";
-                // If mediaId is not empty and is a valid data URI or http link
-                if (p.mediaId && (p.mediaId.startsWith('data:image') || p.mediaId.startsWith('http'))) {
-                    imgHtml = `<img src="${p.mediaId}" class="post-img">`;
+                let mediaHtml = "";
+                if (p.mediaUrl) {
+                    const ext = p.mediaUrl.split('.').pop().toLowerCase();
+                    if(['mp4', 'webm', 'ogg', 'mov'].includes(ext)) {
+                        mediaHtml = `<video src="${p.mediaUrl}" class="post-media" controls></video>`;
+                    } else if(['mp3', 'wav', 'm4a'].includes(ext)) {
+                        mediaHtml = `<audio src="${p.mediaUrl}" controls style="width:100%; margin:16px;"></audio>`;
+                    } else {
+                        mediaHtml = `<img src="${p.mediaUrl}" class="post-media">`;
+                    }
                 }
 
                 let deleteBtnHtml = isAdmin ? `<button class="btn-delete" onclick="deletePost('${p.id}')">🗑 O'chirish</button>` : "";
 
                 html += `
                     <div class="post-card">
-                        ${imgHtml}
+                        ${mediaHtml}
                         <div class="post-content">
                             <div class="post-date">${dateStr}</div>
-                            <div class="post-text">${p.text || ''}</div>
+                            ${p.text ? `<div class="post-text">${p.text}</div>` : ''}
                             ${deleteBtnHtml}
                         </div>
                     </div>
@@ -273,64 +222,65 @@
             grid.innerHTML = html;
         }
 
-        function handleImageSelect(event) {
+        function handleFileSelect(event) {
             const file = event.target.files[0];
             if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    let width = img.width; let height = img.height;
-                    const MAX = 1000;
-                    if (width > height) { if (width > MAX) { height *= MAX / width; width = MAX; } } 
-                    else { if (height > MAX) { width *= MAX / height; height = MAX; } }
-                    
-                    canvas.width = width; canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-                    
-                    finalCompressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
-                    document.getElementById('imgPreviewActual').src = finalCompressedBase64;
-                    document.getElementById('imgPreviewActual').style.display = 'block';
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
+            selectedFile = file;
+            
+            document.getElementById('mediaPreviewText').innerText = file.name;
+            const imgEl = document.getElementById('imgPreview');
+            const vidEl = document.getElementById('vidPreview');
+            const audEl = document.getElementById('audPreview');
+            
+            imgEl.style.display = 'none'; vidEl.style.display = 'none'; audEl.style.display = 'none';
+            imgEl.src = ''; vidEl.src = ''; audEl.src = '';
+
+            const url = URL.createObjectURL(file);
+            
+            if (file.type.startsWith('image/')) {
+                imgEl.src = url; imgEl.style.display = 'block';
+            } else if (file.type.startsWith('video/')) {
+                vidEl.src = url; vidEl.style.display = 'block';
+            } else if (file.type.startsWith('audio/')) {
+                audEl.src = url; audEl.style.display = 'block';
+            }
         }
 
         async function submitPost() {
             const btn = document.getElementById('submitBtn');
             const txt = document.getElementById('addText').value;
             
-            if (!txt && !finalCompressedBase64) return alert("Rasm yoki matn kiriting!");
+            if (!txt && !selectedFile) return alert("Nimadir yozing yoki fayl qistiring (Video, rasm, audio)!");
 
-            btn.innerHTML = "Yuklanmoqda..."; btn.disabled = true;
+            btn.innerHTML = "Yuklanmoqda (Kuting)..."; btn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('userId', validUserId);
+            formData.append('text', txt);
+            if (selectedFile) {
+                formData.append('media', selectedFile);
+            }
 
             try {
                 const req = await fetch('/api/posts', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        userId: validUserId, 
-                        text: txt, 
-                        customImgUrl: finalCompressedBase64
-                    })
+                    body: formData
                 });
                 
-                if(!req.ok) throw new Error("Server xatosi");
+                if(!req.ok) throw new Error("Yuklashda xatolik yuz berdi");
                 
-                // Clear UI
+                // Clear Form
                 document.getElementById('addText').value = "";
-                document.getElementById('imgPreviewActual').src = "";
-                document.getElementById('imgPreviewActual').style.display = 'none';
-                finalCompressedBase64 = "";
+                document.getElementById('addMediaFile').value = "";
+                selectedFile = null;
+                document.getElementById('mediaPreviewText').innerText = "+ Fayl Tanlash";
+                document.getElementById('imgPreview').style.display = 'none';
+                document.getElementById('vidPreview').style.display = 'none';
+                document.getElementById('audPreview').style.display = 'none';
                 
                 btn.innerHTML = "Tarmoqqa Joylash"; btn.disabled = false;
                 
-                loadPosts(); // Fetch data again
-                navigate('listView');
-                if(tg.showAlert) tg.showAlert("Post muvaffaqiyatli saqlandi!");
+                loadPosts(); navigate('listView');
             } catch(e) { 
                 alert(e.message); 
                 btn.innerHTML = "Tarmoqqa Joylash"; btn.disabled = false;
@@ -338,11 +288,8 @@
         }
 
         async function deletePost(id) {
-            if(!confirm("Haqiqatan ham ushbu postni o'chirasizmi?")) return;
-            try {
-                await fetch('/api/posts/' + id, { method: 'DELETE' });
-                loadPosts();
-            } catch(e) { alert("Xatolik"); }
+            if(!confirm("Haqiqatan o'chirasizmi?")) return;
+            try { await fetch('/api/posts/' + id, { method: 'DELETE' }); loadPosts(); } catch(e) {}
         }
     </script>
 </body>

@@ -2,11 +2,20 @@ require("dotenv").config();
 const { Telegraf, session, Scenes, Markup } = require("telegraf");
 const fs = require("fs");
 const path = require("path");
+const express = require("express");
+const multer = require("multer");
 
 const VOLUME_PATH = "/app/database";
 let DATA_FILE = path.join(__dirname, "data.json");
+let UPLOADS_DIR = path.join(__dirname, "public", "uploads");
+
 if (fs.existsSync(VOLUME_PATH)) {
     DATA_FILE = path.join(VOLUME_PATH, "data.json");
+    UPLOADS_DIR = path.join(VOLUME_PATH, "uploads");
+}
+
+if (!fs.existsSync(UPLOADS_DIR)) {
+    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 }
 
 if (!fs.existsSync(DATA_FILE)) {
@@ -73,13 +82,13 @@ bot.start((ctx) => {
         });
         saveData(data);
     }
-    ctx.reply("Assalomu alaykum! Mening platformamga xush kelibsiz. Barcha arxiv va postlarni o'qish uchun Mini App ga kiring.", getMainMenu(ctx.from.id));
+    ctx.reply("Assalomu alaykum! platformamga xush kelibsiz. Arxiv va postlarni o'qish uchun Mini App ga kiring.", getMainMenu(ctx.from.id));
 });
 
 bot.command("admin", (ctx) => {
     const data = loadData();
     if (isUserAdmin(ctx.from.id, data)) {
-        ctx.reply("Admin paneliga xush kelibsiz! Eslatma: Hozir barcha postlar bevosita Mini App ichidan qo'shiladi va boshqariladi (xuddi eski rejimdagi kabi).", getAdminMenu());
+        ctx.reply("Admin paneliga xush kelibsiz!\nHozir barcha postlar bevosita Mini App ichidan qo'shiladi va boshqariladi.", getAdminMenu());
     } else {
         ctx.reply("Siz admin emassiz.");
     }
@@ -97,17 +106,28 @@ bot.hears("📊 Statistika", (ctx) => {
 
 
 bot.launch().then(() => {
-    console.log("Biography Bot is running!");
+    console.log("Bot is running!");
 }).catch(err => console.error(err));
 
 // -------------------------------------------------------------
-// EXPRESS SERVER (Mini App API)
+// EXPRESS SERVER (Mini App API with Native Multer)
 // -------------------------------------------------------------
-const express = require("express");
 const app = express();
 
-app.use(express.json({ limit: '50mb' }));
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, UPLOADS_DIR);
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage: storage });
+
+app.use(express.json({ limit: '100mb' }));
 app.use(express.static(path.join(__dirname, "public")));
+// Ommaviy papka (Uploads) ni static qilish
+app.use('/uploads', express.static(UPLOADS_DIR));
 
 app.post("/api/check-admin", (req, res) => {
     try {
@@ -124,26 +144,29 @@ app.get("/api/posts", (req, res) => {
     res.json({ posts: data.posts || [] });
 });
 
-// Admin Post Qo'shish (Mini Appdan)
-app.post("/api/posts", (req, res) => {
-    const { userId, text, customImgUrl } = req.body;
+// Post Qo'shish Form-Data orqali (Media fayllar)
+app.post("/api/posts", upload.single('media'), (req, res) => {
+    const { userId, text } = req.body;
     const data = loadData();
     
     if (!isUserAdmin(userId, data)) {
         return res.status(403).json({ error: "Siz admin emassiz!" });
     }
 
+    let mediaUrl = "";
+    if (req.file) {
+        mediaUrl = "/uploads/" + req.file.filename;
+    }
+
     const newObj = {
         id: "post_" + Date.now(),
         text: text || "",
-        type: "url", 
-        mediaId: customImgUrl,
+        mediaUrl: mediaUrl,
         created_at: new Date().toISOString()
     };
     
     try {
         if (!data.posts) data.posts = [];
-        // Eng yangisini boshiga qo'shish
         data.posts.unshift(newObj);
         saveData(data);
         res.json({ success: true, item: newObj });
@@ -156,6 +179,16 @@ app.post("/api/posts", (req, res) => {
 app.delete("/api/posts/:id", (req, res) => {
     try {
         const data = loadData();
+        const post = data.posts.find(p => String(p.id) === String(req.params.id));
+        
+        if (post && post.mediaUrl) {
+            // Faylni o'chirib tashlash (joy eklash)
+            const filePath = path.join(UPLOADS_DIR, path.basename(post.mediaUrl));
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
+        }
+
         data.posts = data.posts.filter(p => String(p.id) !== String(req.params.id));
         saveData(data);
         res.json({ success: true });
