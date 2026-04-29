@@ -5,33 +5,28 @@
       "first_name": "𝗧𝗮𝘅𝗶𝗿𝗼𝘃",
       "username": "",
       "joined_at": "2026-04-10T17:28:10.124Z"
+    },
+    {
+      "id": 8021287548,
+      "first_name": "Nodirbek Tohir",
+      "username": "txrvndr",
+      "joined_at": "2026-04-29T09:56:59.314Z"
     }
   ],
-  "orders": [],
-  "admins": [8473181677],
+  "admins": [
+    8473181677
+  ],
   "settings": {
     "telegram": "@admin_username",
-    "phone": "+998500079066",
-    "btnServicesTitle": "hide",
-    "btnPricesTitle": "hide",
-    "btnOrderTitle": "hide"
+    "btnHistoryTitle": "📖 V19: Mening Tarixim"
   },
-  "prices": [],
-  "services": [
+  "posts": [
     {
-      "id": "xonadon",
-      "name": "Xonadonlar",
-      "desc": "Zamonaviy va qulay xonadonlarimiz bilan tanishing."
-    },
-    {
-      "id": "kvartira",
-      "name": "Kvartiralar",
-      "desc": "Shahar markazida va tinch hududlardagi kvartiralar."
-    },
-    {
-      "name": "ijaraga uy",
-      "id": "service_1775849347888",
-      "desc": "kvartira qizlar uchun         ogil bolalar uchun"
+      "id": "post_1777456740756",
+      "type": "photo",
+      "mediaId": "AgACAgIAAxkBAAIExWnx1cnXq34k1fOfYN6vCRZBMkp5AALxF2sbuDeRSxkOxGU7rEoRAQADAgADeQADOwQ",
+      "text": "Nasib nima?",
+      "created_at": "2026-04-29T09:59:00.756Z"
     }
   ]
 }
