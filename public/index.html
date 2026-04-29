@@ -3,86 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mening Platformam</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>Shaxsiy Arxiv</title>
+    <!-- Modern Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --surface: rgba(20, 20, 20, 0.95);
-            --bg-dark: #050505;
-            --primary: #D4AF37; 
-            --primary-dark: #B8860B;
-            --secondary: #ffffff;
-            --text-main: #f8f8f8;
-            --text-muted: #a0a0a0;
+            --bg-dark: #0a0a0f;
+            --surface: rgba(20, 20, 30, 0.6);
+            --primary: #00ffcc; /* Cyber Cyan */
+            --secondary: #9d00ff; /* Deep Purple */
+            --text-main: #ffffff;
+            --text-muted: #8892b0;
             --danger: #ff4d4d;
-            --border: rgba(212, 175, 55, 0.2);
+            --border: rgba(0, 255, 204, 0.2);
+            --radius-lg: 20px;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: var(--bg-dark); color: var(--text-main); overflow-x: hidden; padding-top: 60px;
+            font-family: 'Outfit', sans-serif; background: var(--bg-dark); color: var(--text-main);
+            overflow-x: hidden; min-height: 100vh; padding-top: 70px;
         }
 
+        /* V19 Dynamic Background */
+        #bg-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; }
+        .overlay-gradient {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: radial-gradient(circle at 50% 0%, rgba(157, 0, 255, 0.15) 0%, transparent 70%);
+            z-index: -1; pointer-events: none;
+        }
+
+        /* HEADER */
         .app-header {
-            position: fixed; top: 0; left: 0; right: 0; height: 60px;
-            background: rgba(5, 5, 5, 0.95); border-bottom: 1px solid var(--border);
+            position: fixed; top: 0; left: 0; right: 0; height: 64px;
+            background: linear-gradient(180deg, rgba(10,10,15,0.95) 0%, rgba(10,10,15,0.7) 100%);
+            backdrop-filter: blur(10px); border-bottom: 1px solid var(--border);
             display: flex; align-items: center; justify-content: space-between; padding: 0 16px; z-index: 1000;
         }
+        .header-btn { background: none; border: none; font-size: 24px; color: var(--primary); cursor: pointer; }
+        .header-title { 
+            font-size: 20px; font-weight: 800; letter-spacing: 1px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase;
+        }
 
-        .header-btn { background: none; border: none; font-size: 24px; color: var(--secondary); cursor: pointer; }
-        .header-title { font-size: 18px; font-weight: 700; color: var(--primary); text-transform: uppercase; }
+        /* CATEGORY CHIPS */
+        .category-scroll {
+            display: flex; overflow-x: auto; gap: 10px; padding: 20px 16px 10px;
+            scrollbar-width: none;
+        }
+        .category-scroll::-webkit-scrollbar { display: none; }
+        .cat-pill {
+            padding: 10px 18px; border-radius: 20px; background: rgba(0,0,0,0.4);
+            color: var(--text-muted); font-size: 13px; font-weight: 600; white-space: nowrap;
+            cursor: pointer; border: 1px solid var(--border); transition: all 0.3s;
+            backdrop-filter: blur(8px);
+        }
+        .cat-pill.active {
+            background: var(--primary); color: #000; border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.4);
+        }
 
+        /* SIDEBAR */
         .sidebar {
             position: fixed; top: 0; left: -300px; width: 280px; height: 100vh;
-            background: rgba(15, 15, 15, 0.95); backdrop-filter: blur(10px); z-index: 2000;
+            background: rgba(15, 15, 20, 0.95); backdrop-filter: blur(15px); z-index: 2000;
             border-right: 1px solid var(--border); transition: left 0.3s; display: flex; flex-direction: column;
         }
         .sidebar.open { left: 0; }
-
         .sidebar-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(0, 0, 0, 0.7); z-index: 1500; opacity: 0; pointer-events: none; transition: opacity 0.3s;
         }
         .sidebar-overlay.open { opacity: 1; pointer-events: all; }
-
         .sidebar-header { padding: 40px 20px 24px; border-bottom: 1px solid var(--border); }
-        .profile-name { font-size: 16px; font-weight: 700; color: var(--primary); }
-
-        .menu-item { padding: 16px 20px; font-size: 15px; font-weight: 500; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
-        .menu-item:active { background: rgba(255,255,255,0.1); }
-
-        .page-container { padding: 16px; display: none; }
+        .profile-name { font-size: 18px; font-weight: 800; color: var(--primary); }
+        .menu-item { padding: 16px 20px; font-size: 15px; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
+        
+        .page-container { padding: 0 16px 40px; display: none; animation: fadeIn 0.4s ease; }
         .page-container.active { display: block; }
         .back-nav { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600; color: var(--primary); padding: 8px 0; margin-bottom: 16px; cursor: pointer; }
 
-        .post-card { background: #111; border: 1px solid var(--border); border-radius: 16px; margin-bottom: 24px; overflow: hidden; }
-        .post-media { width: 100%; max-height: 400px; background: #000; display: block; object-fit: contain; }
-        .post-content { padding: 16px; }
-        .post-date { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
-        .post-text { font-size: 15px; line-height: 1.6; white-space: pre-wrap; }
+        /* POST CARDS (V19 GLOW STYLE) */
+        .post-card {
+            background: var(--surface); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border); border-radius: var(--radius-lg);
+            margin-bottom: 30px; overflow: hidden; position: relative;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+        .post-media { width: 100%; max-height: 400px; display: block; object-fit: contain; background: #000; }
+        .post-content { padding: 20px; }
+        .post-date { font-size: 11px; font-weight: 800; color: var(--primary); margin-bottom: 12px; letter-spacing: 1px; text-transform: uppercase; }
+        .post-text { font-size: 16px; line-height: 1.6; color: rgba(255,255,255,0.9); white-space: pre-wrap; }
 
-        .btn-delete { width: 100%; padding: 12px; background: rgba(255,0,0,0.1); color: var(--danger); border: 1px solid var(--danger); border-radius: 8px; font-weight: bold; margin-top: 16px; cursor: pointer; }
+        /* DELETION */
+        .btn-delete { width: 100%; padding: 12px; background: rgba(255,77,77,0.1); color: var(--danger); border: 1px solid rgba(255,77,77,0.3); border-radius: 8px; font-weight: bold; margin-top: 16px; cursor: pointer; transition: 0.2s; }
+        .btn-delete:active { background: rgba(255,77,77,0.2); }
 
+        /* FORM PANEL (ADD POST) */
         .form-panel { background: var(--surface); padding: 20px; border-radius: 16px; border: 1px solid var(--border); }
-        .input-group { margin-bottom: 16px; }
-        .input-group label { display: block; margin-bottom: 8px; font-size: 13px; color: var(--text-muted); }
-        .input-group textarea { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--border); background: #0a0a0a; color: #fff; font-size: 15px; outline: none; }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; font-size: 13px; color: var(--text-muted); font-weight:600; }
+        .input-group textarea { width: 100%; padding: 16px; border-radius: 12px; border: 1px solid var(--border); background: rgba(0,0,0,0.5); color: #fff; font-size: 15px; outline: none; font-family: 'Outfit'; }
         
-        .upload-box { width: 100%; padding:20px; border: 2px dashed var(--primary); background: rgba(212, 175, 55, 0.05); border-radius: 12px; text-align:center; cursor: pointer; position: relative; }
-        .upload-box p { color:var(--primary); font-weight:600; }
-        .upload-box audio, .upload-box video, .upload-box img { width: 100%; max-height: 200px; margin-top: 10px; display: none; object-fit:contain; border-radius:8px;}
+        .upload-box {
+            width: 100%; padding: 30px; border: 2px dashed var(--primary); background: rgba(0, 255, 204, 0.05);
+            border-radius: 12px; text-align: center; cursor: pointer;
+        }
+        .upload-box p { color: var(--primary); font-weight: 800; font-size:15px; }
+        .upload-box audio, .upload-box video, .upload-box img { width: 100%; max-height: 250px; margin-top: 15px; display: none; border-radius:8px; object-fit:contain; }
 
-        .btn-primary { width: 100%; padding: 16px; background: var(--primary); color: #000; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; text-transform: uppercase; }
-        .btn-primary:active { transform: scale(0.98); }
+        .btn-primary {
+            width: 100%; padding: 18px; background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #000; font-weight: 800; font-size:16px; border: none; border-radius: 12px; cursor: pointer; text-transform: uppercase;
+            box-shadow: 0 5px 20px rgba(0, 255, 204, 0.3);
+        }
+
+        .empty-state { text-align: center; color: var(--text-muted); padding: 50px 20px; font-size: 14px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
+    <canvas id="bg-canvas"></canvas>
+    <div class="overlay-gradient"></div>
 
     <div class="app-header">
         <button class="header-btn" onclick="toggleSidebar()">☰</button>
-        <div class="header-title">Arxiv / Kundalik</div>
+        <div class="header-title">Arxiv va Xotiralar</div>
         <div style="width: 24px;"></div>
     </div>
 
@@ -93,14 +143,13 @@
                 <div class="profile-name" id="userNameTxt">Mehmon</div>
                 <div onclick="toggleSidebar()" style="font-size: 24px; color: #fff; cursor: pointer;">✕</div>
             </div>
-            <div style="color:var(--text-muted); font-size:12px; margin-top:4px;" id="userIdTxt"></div>
         </div>
         
         <div style="flex-grow: 1; overflow-y: auto;">
             <div class="menu-item" onclick="navigate('listView'); toggleSidebar();">📖 Barcha Postlar</div>
             
-            <div id="adminMenuSection" style="display:none; border-top:1px solid #333; margin-top:10px;">
-                <div style="padding: 16px 20px 8px; color:var(--primary); font-size:11px; font-weight:bold;">TIZIM BOSHQARUVI (ADMIN)</div>
+            <div id="adminMenuSection" style="display:none; border-top:1px solid rgba(255,255,255,0.1); margin-top:10px;">
+                <div style="padding: 16px 20px 8px; color:var(--primary); font-size:11px; font-weight:800; letter-spacing:1px;">ADMIN PANEL</div>
                 <div class="menu-item" onclick="navigate('addView'); toggleSidebar();" style="color:var(--primary);">➕ Yangi Post Qo'shish</div>
             </div>
         </div>
@@ -108,53 +157,60 @@
 
     <!-- LIST VIEW -->
     <div id="listView" class="page-container active">
-        <div id="posts-grid"><div style="text-align:center; margin-top:40px;">Yuklanmoqda...</div></div>
+        <!-- Categories -->
+        <div class="category-scroll">
+            <div class="cat-pill active" onclick="setCategory(this, 'all')">📚 Barchasi</div>
+            <div class="cat-pill" onclick="setCategory(this, 'video')">🎥 Videolar</div>
+            <div class="cat-pill" onclick="setCategory(this, 'audio')">🎧 Audiolar</div>
+            <div class="cat-pill" onclick="setCategory(this, 'photo')">📸 Rasmlar</div>
+            <div class="cat-pill" onclick="setCategory(this, 'text')">📝 Matnlar</div>
+        </div>
+
+        <div id="posts-grid"><div class="empty-state">Yuklanmoqda...</div></div>
     </div>
 
     <!-- ADD VIEW -->
     <div id="addView" class="page-container">
         <div class="back-nav" onclick="navigate('listView')">← Orqaga</div>
         <div class="form-panel">
-            <h2 style="font-size:18px; color:var(--primary); margin-bottom:20px;">Yangi Arxiv Qo'shish</h2>
+            <h2 style="font-size:20px; color:var(--primary); margin-bottom:24px;">Yangi Post Qo'shish</h2>
             
             <div class="input-group">
-                <label>Media: Rasm, Video yoki Audio (Qo'shmaslik ham mumkin)</label>
+                <label>Media: Video, Audio yoki Rasm biriktirish</label>
                 <div class="upload-box" onclick="document.getElementById('addMediaFile').click()">
-                    <p id="mediaPreviewText">+ Fayl Tanlash</p>
+                    <p id="mediaPreviewText">Yangi fayl tanlash +</p>
                     <img id="imgPreview" src="">
                     <video id="vidPreview" controls></video>
                     <audio id="audPreview" controls></audio>
                 </div>
-                <!-- Barcha formatlarni ruxsat beramiz! -->
                 <input type="file" id="addMediaFile" accept="image/*,video/*,audio/*" style="display:none;" onchange="handleFileSelect(event)">
             </div>
 
             <div class="input-group">
                 <label>Matn / Hikoya</label>
-                <textarea id="addText" rows="6" placeholder="Fikrlaringizni yozing..."></textarea>
+                <textarea id="addText" rows="6" placeholder="Fikrlaringizni yozing yoki videoga izoh qoldiring..."></textarea>
             </div>
 
-            <button id="submitBtn" class="btn-primary" onclick="submitPost()">Tarmoqqa Joylash</button>
+            <button id="submitBtn" class="btn-primary" onclick="submitPost()">Tarmoqqa Joylash 🚀</button>
         </div>
     </div>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
         const tg = window.Telegram.WebApp;
-        tg.expand();
-        tg.ready();
+        tg.expand(); tg.ready();
 
         let tgUser = tg.initDataUnsafe?.user;
         const urlParams = new URLSearchParams(window.location.search);
         let validUserId = tgUser?.id || urlParams.get('uid');
 
         let globalPosts = [];
+        let curCat = "all";
         let selectedFile = null;
         let isAdmin = false;
 
         if (tgUser) document.getElementById('userNameTxt').innerText = `${tgUser.first_name || 'Mehmon'}`.trim();
         if (validUserId) {
-            document.getElementById('userIdTxt').innerText = `ID: ${validUserId}`;
             fetch('/api/check-admin', {
                 method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ userId: validUserId })
             }).then(r=>r.json()).then(res => {
@@ -182,31 +238,48 @@
             window.scrollTo(0,0);
         }
 
+        function setCategory(el, catName) {
+            document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+            if(el) el.classList.add('active');
+            curCat = catName;
+            renderList();
+        }
+
+        function getMediaType(mediaUrl) {
+            if (!mediaUrl) return 'text';
+            const ext = mediaUrl.split('.').pop().toLowerCase();
+            if(['mp4', 'webm', 'ogg', 'mov'].includes(ext)) return 'video';
+            if(['mp3', 'wav', 'm4a'].includes(ext)) return 'audio';
+            return 'photo';
+        }
+
         function renderList() {
             const grid = document.getElementById("posts-grid");
-            if (globalPosts.length === 0) {
-                grid.innerHTML = `<div style="text-align:center; padding:50px 0; color:#888;">Hech qanday post yo'q.</div>`;
+            
+            let filtered = globalPosts;
+            if (curCat !== 'all') {
+                filtered = globalPosts.filter(p => getMediaType(p.mediaUrl) === curCat);
+            }
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="empty-state">Bu ruknda hech qanday post yo'q.</div>`;
                 return;
             }
 
             let html = "";
-            globalPosts.forEach(p => {
+            filtered.forEach(p => {
                 const dateObj = new Date(p.created_at);
                 const dateStr = dateObj.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
                 
                 let mediaHtml = "";
                 if (p.mediaUrl) {
-                    const ext = p.mediaUrl.split('.').pop().toLowerCase();
-                    if(['mp4', 'webm', 'ogg', 'mov'].includes(ext)) {
-                        mediaHtml = `<video src="${p.mediaUrl}" class="post-media" controls></video>`;
-                    } else if(['mp3', 'wav', 'm4a'].includes(ext)) {
-                        mediaHtml = `<audio src="${p.mediaUrl}" controls style="width:100%; margin:16px;"></audio>`;
-                    } else {
-                        mediaHtml = `<img src="${p.mediaUrl}" class="post-media">`;
-                    }
+                    const type = getMediaType(p.mediaUrl);
+                    if(type === 'video') mediaHtml = `<video src="${p.mediaUrl}" class="post-media" controls></video>`;
+                    else if(type === 'audio') mediaHtml = `<audio src="${p.mediaUrl}" controls style="width:calc(100% - 32px); margin:16px; border-radius:12px;"></audio>`;
+                    else mediaHtml = `<img src="${p.mediaUrl}" class="post-media">`;
                 }
 
-                let deleteBtnHtml = isAdmin ? `<button class="btn-delete" onclick="deletePost('${p.id}')">🗑 O'chirish</button>` : "";
+                let deleteBtnHtml = isAdmin ? `<button class="btn-delete" onclick="deletePost('${p.id}')">🗑 Postni O'chirish</button>` : "";
 
                 html += `
                     <div class="post-card">
@@ -250,47 +323,81 @@
             const btn = document.getElementById('submitBtn');
             const txt = document.getElementById('addText').value;
             
-            if (!txt && !selectedFile) return alert("Nimadir yozing yoki fayl qistiring (Video, rasm, audio)!");
+            if (!txt && !selectedFile) return alert("Nimadir yozing yoki rasm/video/audio qistiring!");
 
-            btn.innerHTML = "Yuklanmoqda (Kuting)..."; btn.disabled = true;
+            btn.innerHTML = "Yuklanmoqda..."; btn.disabled = true;
 
             const formData = new FormData();
             formData.append('userId', validUserId);
             formData.append('text', txt);
-            if (selectedFile) {
-                formData.append('media', selectedFile);
-            }
+            if (selectedFile) formData.append('media', selectedFile);
 
             try {
-                const req = await fetch('/api/posts', {
-                    method: 'POST',
-                    body: formData
-                });
+                const req = await fetch('/api/posts', { method: 'POST', body: formData });
+                if(!req.ok) throw new Error("Yuklashda xatolik");
                 
-                if(!req.ok) throw new Error("Yuklashda xatolik yuz berdi");
-                
-                // Clear Form
+                // Form reset
                 document.getElementById('addText').value = "";
                 document.getElementById('addMediaFile').value = "";
                 selectedFile = null;
-                document.getElementById('mediaPreviewText').innerText = "+ Fayl Tanlash";
+                document.getElementById('mediaPreviewText').innerText = "Yangi fayl tanlash +";
                 document.getElementById('imgPreview').style.display = 'none';
                 document.getElementById('vidPreview').style.display = 'none';
                 document.getElementById('audPreview').style.display = 'none';
                 
-                btn.innerHTML = "Tarmoqqa Joylash"; btn.disabled = false;
+                btn.innerHTML = "Tarmoqqa Joylash 🚀"; btn.disabled = false;
                 
                 loadPosts(); navigate('listView');
-            } catch(e) { 
-                alert(e.message); 
-                btn.innerHTML = "Tarmoqqa Joylash"; btn.disabled = false;
-            }
+            } catch(e) { alert(e.message); btn.innerHTML = "Tarmoqqa Joylash 🚀"; btn.disabled = false; }
         }
 
         async function deletePost(id) {
-            if(!confirm("Haqiqatan o'chirasizmi?")) return;
+            if(!confirm("Bu postni o'chirib tashlaysizmi?")) return;
             try { await fetch('/api/posts/' + id, { method: 'DELETE' }); loadPosts(); } catch(e) {}
         }
+
+        /* --- PARTICLES BACKGROUND (NO "V19" BRANDING) --- */
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+
+        function resize() { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resize); resize();
+
+        class Node {
+            constructor() {
+                this.x = Math.random() * width; this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 0.5; this.vy = (Math.random() - 0.5) * 0.5;
+                this.radius = Math.random() * 2 + 1;
+            }
+            update() {
+                this.x += this.vx; this.y += this.vy;
+                if(this.x < 0 || this.x > width) this.vx *= -1;
+                if(this.y < 0 || this.y > height) this.vy *= -1;
+            }
+            draw() {
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0, 255, 204, 0.4)'; ctx.fill();
+            }
+        }
+        const nodes = Array.from({length: 30}, () => new Node());
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            for(let i=0; i<nodes.length; i++) {
+                nodes[i].update(); nodes[i].draw();
+                for(let j=i+1; j<nodes.length; j++) {
+                    const dx = nodes[i].x - nodes[j].x; const dy = nodes[i].y - nodes[j].y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if(dist < 150) {
+                        ctx.beginPath(); ctx.moveTo(nodes[i].x, nodes[i].y); ctx.lineTo(nodes[j].x, nodes[j].y);
+                        ctx.strokeStyle = `rgba(157, 0, 255, ${1 - dist/150})`; ctx.lineWidth = 1; ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+        animate();
     </script>
 </body>
 </html>
