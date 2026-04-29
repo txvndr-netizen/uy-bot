@@ -3,154 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Biography V19</title>
+    <title>Mening Platformam</title>
     <!-- Modern Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-dark: #0a0a0f;
-            --surface: rgba(20, 20, 30, 0.6);
-            --primary: #00ffcc; /* V19 Cyber/Synaptic Cyan */
-            --secondary: #9d00ff; /* Deep Purple */
-            --text-main: #ffffff;
-            --text-muted: #8892b0;
-            --border: rgba(0, 255, 204, 0.2);
-            --radius-lg: 24px;
+            --surface: rgba(20, 20, 20, 0.95);
+            --bg-dark: #050505;
+            --primary: #D4AF37; /* Gold */
+            --primary-dark: #B8860B;
+            --secondary: #ffffff;
+            --text-main: #f8f8f8;
+            --text-muted: #a0a0a0;
+            --danger: #ff4d4d;
+            --border: rgba(212, 175, 55, 0.2);
+            --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.6);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
         body {
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             background: var(--bg-dark);
             color: var(--text-main);
             overflow-x: hidden;
-            min-height: 100vh;
-        }
-
-        /* V19 Dynamic Background */
-        #bg-canvas {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1;
-        }
-        
-        .overlay-gradient {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: radial-gradient(circle at 50% 0%, rgba(157, 0, 255, 0.15) 0%, transparent 70%);
-            z-index: -1; pointer-events: none;
+            padding-top: 60px;
         }
 
         /* HEADER */
         .app-header {
-            padding: 30px 20px;
-            text-align: center;
-            background: linear-gradient(180deg, rgba(10,10,15,0.9) 0%, transparent 100%);
-            position: relative; z-index: 10;
-            animation: slideDown 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            position: fixed; top: 0; left: 0; right: 0; height: 60px;
+            background: rgba(5, 5, 5, 0.95);
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 16px; z-index: 1000;
         }
 
-        .app-header h1 {
-            font-size: 32px; font-weight: 800; letter-spacing: 2px;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            text-transform: uppercase; margin-bottom: 8px;
+        .header-btn {
+            background: none; border: none; font-size: 24px; color: var(--secondary); cursor: pointer;
+        }
+        
+        .header-title { font-size: 18px; font-weight: 700; color: var(--primary); letter-spacing: 1px; text-transform: uppercase; }
+
+        /* SIDEBAR */
+        .sidebar {
+            position: fixed; top: 0; left: -300px; width: 280px; height: 100vh;
+            background: rgba(15, 15, 15, 0.95); backdrop-filter: blur(10px);
+            z-index: 2000; border-right: 1px solid var(--border);
+            transition: left 0.3s; display: flex; flex-direction: column;
+        }
+        .sidebar.open { left: 0; }
+
+        .sidebar-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.7); z-index: 1500;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        .sidebar-overlay.open { opacity: 1; pointer-events: all; }
+
+        .sidebar-header { padding: 40px 20px 24px; border-bottom: 1px solid var(--border); }
+        .profile-name { font-size: 16px; font-weight: 700; color: var(--primary); }
+
+        .menu-item {
+            padding: 16px 20px; font-size: 15px; font-weight: 500; 
+            border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer;
+        }
+        .menu-item:active { background: rgba(255,255,255,0.1); }
+
+        /* VIEWS */
+        .page-container { padding: 16px; animation: fadeIn 0.3s ease; display: none; }
+        .page-container.active { display: block; }
+
+        .back-nav {
+            display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600;
+            color: var(--primary); padding: 8px 0; margin-bottom: 16px; cursor: pointer;
         }
 
-        .app-header p {
-            font-size: 14px; font-weight: 300; color: var(--text-muted); letter-spacing: 1px;
-        }
-
-        /* TIMELINE CONTAINER */
-        .timeline {
-            padding: 20px;
-            max-width: 600px;
-            margin: 0 auto;
-            position: relative;
-        }
-
-        /* Center Line connecting posts */
-        .timeline::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 40px; height: 100%; width: 2px;
-            background: linear-gradient(to bottom, transparent, var(--primary), var(--secondary), transparent);
-            opacity: 0.3;
-        }
-
+        /* CARDS (Posts) */
         .post-card {
-            position: relative; margin-bottom: 40px; padding-left: 50px;
-            animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            opacity: 0; transform: translateY(20px);
+            background: #111; border: 1px solid var(--border);
+            border-radius: 16px; margin-bottom: 24px; overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        }
+        .post-img { width: 100%; max-height: 400px; object-fit: contain; background: #000; display: block; }
+        .post-content { padding: 16px; }
+        .post-date { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+        .post-text { font-size: 15px; line-height: 1.6; white-space: pre-wrap; }
+
+        /* ADMIN DELETE BUTTON */
+        .btn-delete {
+            width: 100%; padding: 12px; background: rgba(255,0,0,0.1);
+            color: var(--danger); border: 1px solid var(--danger);
+            border-radius: 8px; font-weight: bold; margin-top: 16px; cursor: pointer;
         }
 
-        /* Glow node on the timeline */
-        .post-card::before {
-            content: ''; position: absolute; left: 16px; top: 20px;
-            width: 10px; height: 10px; border-radius: 50%;
-            background: var(--primary);
-            box-shadow: 0 0 15px var(--primary);
+        /* SETTINGS & ADD FORMS */
+        .form-panel { background: var(--surface); padding: 20px; border-radius: 16px; border: 1px solid var(--border); }
+        .input-group { margin-bottom: 16px; }
+        .input-group label { display: block; margin-bottom: 8px; font-size: 13px; color: var(--text-muted); }
+        .input-group textarea, .input-group input {
+            width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--border);
+            background: #0a0a0a; color: #fff; font-size: 15px; outline: none;
+        }
+        .img-upload-box {
+            width: 100%; height: 160px; border: 2px dashed var(--primary);
+            background: rgba(212, 175, 55, 0.05); border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative;
+        }
+        .img-upload-box img { width: 100%; height: 100%; object-fit: cover; position: absolute; border-radius: 10px; display: none; }
+
+        .btn-primary {
+            width: 100%; padding: 16px; background: var(--primary);
+            color: #000; font-weight: 700; border: none; border-radius: 12px;
+            cursor: pointer; text-transform: uppercase; letter-spacing: 1px;
         }
 
-        .post-content {
-            background: var(--surface);
-            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 24px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            transition: transform 0.3s ease, border-color 0.3s ease;
-        }
-
-        .post-content:active {
-            transform: scale(0.98); border-color: var(--secondary);
-        }
-
-        .post-date {
-            font-size: 12px; font-weight: 600; color: var(--primary);
-            margin-bottom: 12px; letter-spacing: 1px; text-transform: uppercase;
-        }
-
-        .post-text {
-            font-size: 16px; line-height: 1.6; color: rgba(255,255,255,0.9);
-            white-space: pre-wrap; margin-bottom: 16px;
-        }
-
-        .media-badge {
-            display: inline-flex; align-items: center; gap: 8px;
-            padding: 8px 14px; background: rgba(0, 255, 204, 0.1);
-            border-radius: 12px; font-size: 12px; font-weight: 600;
-            color: var(--primary); border: 1px solid rgba(0, 255, 204, 0.2);
-        }
-
-        .btn-read-bot {
-            display: block; width: 100%; text-align: center;
-            padding: 16px; border-radius: 16px; margin-top: 40px;
-            background: linear-gradient(135deg, var(--secondary), #4a00e0);
-            color: #fff; font-size: 16px; font-weight: 800; text-decoration: none;
-            box-shadow: 0 10px 30px rgba(157, 0, 255, 0.4); text-transform: uppercase;
-            border: none; cursor: pointer;
-        }
-
-        .empty-state { text-align: center; color: var(--text-muted); padding: 60px 20px; font-size: 15px; }
-
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
-    <canvas id="bg-canvas"></canvas>
-    <div class="overlay-gradient"></div>
 
+    <!-- HEADER -->
     <div class="app-header">
-        <h1>V19 Chronicle</h1>
-        <p>Mening Tarixiy Yo'lim</p>
+        <button class="header-btn" onclick="toggleSidebar()">☰</button>
+        <div class="header-title">Arxiv / Kundalik</div>
+        <div style="width: 24px;"></div>
     </div>
 
-    <div class="timeline" id="timelineList">
-        <div class="empty-state">Tarixiy sahifalar yuklanmoqda...</div>
+    <!-- SIDEBAR -->
+    <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+    <div id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <div style="display: flex; justify-content: space-between;">
+                <div class="profile-name" id="userNameTxt">Mehmon</div>
+                <div onclick="toggleSidebar()" style="font-size: 24px; color: #fff; cursor: pointer;">✕</div>
+            </div>
+            <div style="color:var(--text-muted); font-size:12px; margin-top:4px;" id="userIdTxt"></div>
+        </div>
+        
+        <div style="flex-grow: 1; overflow-y: auto;">
+            <div class="menu-item" onclick="navigate('listView'); toggleSidebar();">📖 Barcha Postlar</div>
+            
+            <div id="adminMenuSection" style="display:none; border-top:1px solid #333; margin-top:10px;">
+                <div style="padding: 16px 20px 8px; color:var(--primary); font-size:11px; font-weight:bold;">TIZIM BOSHQARUVI (ADMIN)</div>
+                <div class="menu-item" onclick="navigate('addView'); toggleSidebar();" style="color:var(--primary);">➕ Yangi Post Qo'shish</div>
+            </div>
+        </div>
     </div>
 
-    <div style="padding: 0 20px 40px;">
-        <button class="btn-read-bot" onclick="closeApp()">To'liq formatda Botda o'qish</button>
+    <!-- VIEW: 1. LIST OF POSTS -->
+    <div id="listView" class="page-container active">
+        <div id="posts-grid">
+            <div style="text-align:center; color:var(--text-muted); margin-top:40px;">Yuklanmoqda...</div>
+        </div>
+    </div>
+
+    <!-- VIEW: 2. ADD POST (ADMIN ONLY) -->
+    <div id="addView" class="page-container">
+        <div class="back-nav" onclick="navigate('listView')">← Orqaga</div>
+        <div class="form-panel">
+            <h2 style="font-size:18px; color:var(--primary); margin-bottom:20px;">Yangi Arxiv Qo'shish</h2>
+            
+            <div class="input-group">
+                <label>Rasm (Majburiy emas agar matn bo'lsa)</label>
+                <div class="img-upload-box" onclick="document.getElementById('addImgFile').click()">
+                    <div id="imgPreviewText" style="color:var(--primary); font-weight:600;">+ Rasm Tanlash</div>
+                    <img id="imgPreviewActual" src="">
+                </div>
+                <input type="file" id="addImgFile" accept="image/*" style="display:none;" onchange="handleImageSelect(event)">
+            </div>
+
+            <div class="input-group">
+                <label>Matn / Hikoya</label>
+                <textarea id="addText" rows="8" placeholder="Fikrlaringizni yozing..."></textarea>
+            </div>
+
+            <button id="submitBtn" class="btn-primary" onclick="submitPost()">Tarmoqqa Joylash</button>
+        </div>
     </div>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -159,107 +188,162 @@
         tg.expand();
         tg.ready();
 
-        function closeApp() { tg.close(); }
+        let tgUser = tg.initDataUnsafe?.user;
+        const urlParams = new URLSearchParams(window.location.search);
+        let validUserId = tgUser?.id || urlParams.get('uid');
 
-        fetch('/api/posts')
-            .then(res => res.json())
-            .then(data => {
-                const list = document.getElementById('timelineList');
-                let posts = data.posts || [];
-                
-                if (posts.length === 0) {
-                    list.innerHTML = `<div class="empty-state">Hali xotiralar bitilmagan... Bot orqali yangi post qo'shing.</div>`;
-                    return;
-                }
+        let globalPosts = [];
+        let finalCompressedBase64 = "";
+        let isAdmin = false;
 
-                let html = '';
-                posts.forEach((p, idx) => {
-                    const dateObj = new Date(p.created_at);
-                    const dateStr = dateObj.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long', year: 'numeric' });
-                    
-                    let mediaLabel = '';
-                    if (p.type === 'photo') mediaLabel = '📸 Rasm';
-                    if (p.type === 'video') mediaLabel = '🎥 Video';
-                    if (p.type === 'audio') mediaLabel = '🎧 Audio';
-
-                    let badgeHtml = mediaLabel ? `<div class="media-badge">${mediaLabel} (Botda ko'rish mumkin)</div>` : '';
-
-                    html += `
-                        <div class="post-card" style="animation-delay: ${idx * 0.15}s;">
-                            <div class="post-content">
-                                <div class="post-date">${dateStr}</div>
-                                ${p.text ? `<div class="post-text">${p.text}</div>` : ''}
-                                ${badgeHtml}
-                            </div>
-                        </div>
-                    `;
-                });
-                list.innerHTML = html;
-            })
-            .catch(err => {
-                document.getElementById('timelineList').innerHTML = `<div class="empty-state">Xatolik yuz berdi: ${err.message}</div>`;
-            });
-
-        // V19 NEURAL PARTICLE BACKGROUND
-        const canvas = document.getElementById('bg-canvas');
-        const ctx = canvas.getContext('2d');
-        let width, height;
-
-        function resize() {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
+        if (tgUser) {
+            document.getElementById('userNameTxt').innerText = `${tgUser.first_name || 'Mehmon'}`.trim();
         }
-        window.addEventListener('resize', resize);
-        resize();
-
-        class Node {
-            constructor() {
-                this.x = Math.random() * width;
-                this.y = Math.random() * height;
-                this.vx = (Math.random() - 0.5) * 0.5;
-                this.vy = (Math.random() - 0.5) * 0.5;
-                this.radius = Math.random() * 2 + 1;
-            }
-            update() {
-                this.x += this.vx; this.y += this.vy;
-                if(this.x < 0 || this.x > width) this.vx *= -1;
-                if(this.y < 0 || this.y > height) this.vy *= -1;
-            }
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(0, 255, 204, 0.5)';
-                ctx.fill();
-            }
-        }
-
-        const nodes = Array.from({length: 40}, () => new Node());
-
-        function animate() {
-            ctx.clearRect(0, 0, width, height);
+        if (validUserId) {
+            document.getElementById('userIdTxt').innerText = `ID: ${validUserId}`;
             
-            for(let i=0; i<nodes.length; i++) {
-                nodes[i].update();
-                nodes[i].draw();
-                
-                for(let j=i+1; j<nodes.length; j++) {
-                    const dx = nodes[i].x - nodes[j].x;
-                    const dy = nodes[i].y - nodes[j].y;
-                    const dist = Math.sqrt(dx*dx + dy*dy);
-                    
-                    if(dist < 150) {
-                        ctx.beginPath();
-                        ctx.moveTo(nodes[i].x, nodes[i].y);
-                        ctx.lineTo(nodes[j].x, nodes[j].y);
-                        ctx.strokeStyle = `rgba(157, 0, 255, ${1 - dist/150})`;
-                        ctx.lineWidth = 1;
-                        ctx.stroke();
-                    }
-                }
-            }
-            requestAnimationFrame(animate);
+            // Check Admin Access
+            fetch('/api/check-admin', {
+                method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ userId: validUserId })
+            }).then(r=>r.json()).then(res => {
+                isAdmin = res.isAdmin;
+                if(isAdmin) document.getElementById('adminMenuSection').style.display = 'block';
+                loadPosts(); // Reload to render delete buttons if admin
+            }).catch(()=>{});
         }
-        animate();
+
+        // Fetch Posts
+        function loadPosts() {
+            fetch('/api/posts')
+                .then(res => res.json())
+                .then(data => {
+                    globalPosts = data.posts || [];
+                    renderList();
+                });
+        }
+        loadPosts();
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('open');
+        }
+
+        function navigate(viewId) {
+            ['listView', 'addView'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    if (id === viewId) el.classList.add('active');
+                    else el.classList.remove('active');
+                }
+            });
+            window.scrollTo(0,0);
+        }
+
+        function renderList() {
+            const grid = document.getElementById("posts-grid");
+            if (globalPosts.length === 0) {
+                grid.innerHTML = `<div style="text-align:center; padding:50px 0; color:#888;">Hech qanday post yo'q.</div>`;
+                return;
+            }
+
+            let html = "";
+            globalPosts.forEach(p => {
+                const dateObj = new Date(p.created_at);
+                const dateStr = dateObj.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                
+                let imgHtml = "";
+                // If mediaId is not empty and is a valid data URI or http link
+                if (p.mediaId && (p.mediaId.startsWith('data:image') || p.mediaId.startsWith('http'))) {
+                    imgHtml = `<img src="${p.mediaId}" class="post-img">`;
+                }
+
+                let deleteBtnHtml = isAdmin ? `<button class="btn-delete" onclick="deletePost('${p.id}')">🗑 O'chirish</button>` : "";
+
+                html += `
+                    <div class="post-card">
+                        ${imgHtml}
+                        <div class="post-content">
+                            <div class="post-date">${dateStr}</div>
+                            <div class="post-text">${p.text || ''}</div>
+                            ${deleteBtnHtml}
+                        </div>
+                    </div>
+                `;
+            });
+            grid.innerHTML = html;
+        }
+
+        function handleImageSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width; let height = img.height;
+                    const MAX = 1000;
+                    if (width > height) { if (width > MAX) { height *= MAX / width; width = MAX; } } 
+                    else { if (height > MAX) { width *= MAX / height; height = MAX; } }
+                    
+                    canvas.width = width; canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    finalCompressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
+                    document.getElementById('imgPreviewActual').src = finalCompressedBase64;
+                    document.getElementById('imgPreviewActual').style.display = 'block';
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function submitPost() {
+            const btn = document.getElementById('submitBtn');
+            const txt = document.getElementById('addText').value;
+            
+            if (!txt && !finalCompressedBase64) return alert("Rasm yoki matn kiriting!");
+
+            btn.innerHTML = "Yuklanmoqda..."; btn.disabled = true;
+
+            try {
+                const req = await fetch('/api/posts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        userId: validUserId, 
+                        text: txt, 
+                        customImgUrl: finalCompressedBase64
+                    })
+                });
+                
+                if(!req.ok) throw new Error("Server xatosi");
+                
+                // Clear UI
+                document.getElementById('addText').value = "";
+                document.getElementById('imgPreviewActual').src = "";
+                document.getElementById('imgPreviewActual').style.display = 'none';
+                finalCompressedBase64 = "";
+                
+                btn.innerHTML = "Tarmoqqa Joylash"; btn.disabled = false;
+                
+                loadPosts(); // Fetch data again
+                navigate('listView');
+                if(tg.showAlert) tg.showAlert("Post muvaffaqiyatli saqlandi!");
+            } catch(e) { 
+                alert(e.message); 
+                btn.innerHTML = "Tarmoqqa Joylash"; btn.disabled = false;
+            }
+        }
+
+        async function deletePost(id) {
+            if(!confirm("Haqiqatan ham ushbu postni o'chirasizmi?")) return;
+            try {
+                await fetch('/api/posts/' + id, { method: 'DELETE' });
+                loadPosts();
+            } catch(e) { alert("Xatolik"); }
+        }
     </script>
 </body>
 </html>
