@@ -158,7 +158,8 @@ bot.use(stage.middleware());
 // -------------------------------------------------------------
 
 function getMainMenu(userId = "") {
-    let url = WEB_APP_URL + (userId ? "?uid=" + userId : "");
+    let url = WEB_APP_URL + "?v=" + Date.now();
+    if (userId) url += "&uid=" + userId;
     return Markup.keyboard([
         ["📚 Mening Tarixim / V19"],
         [Markup.button.webApp("🌟 V19 Mini App", url)]
