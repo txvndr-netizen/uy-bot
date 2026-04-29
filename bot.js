@@ -197,6 +197,28 @@ app.delete("/api/posts/:id", (req, res) => {
     }
 });
 
+// Reaksiya (Stiker) bosish
+app.post("/api/posts/:id/react", (req, res) => {
+    try {
+        const { type } = req.body;
+        const data = loadData();
+        const post = data.posts.find(p => String(p.id) === String(req.params.id));
+        
+        if (post) {
+            if (!post.reactions) post.reactions = { like: 0, dove: 0, banana: 0 };
+            if (['like', 'dove', 'banana'].includes(type)) {
+                post.reactions[type] = (post.reactions[type] || 0) + 1;
+            }
+            saveData(data);
+            res.json({ success: true, reactions: post.reactions });
+        } else {
+            res.status(404).json({ error: "Post topilmadi" });
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`Mini App server port: ${PORT}`);

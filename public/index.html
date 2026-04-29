@@ -98,6 +98,12 @@
         .post-date { font-size: 11px; font-weight: 800; color: var(--primary); margin-bottom: 12px; letter-spacing: 1px; text-transform: uppercase; }
         .post-text { font-size: 16px; line-height: 1.6; color: rgba(255,255,255,0.9); white-space: pre-wrap; }
 
+        /* REACTIONS */
+        .reaction-bar { display: flex; gap: 12px; margin-top: 16px; align-items: center; }
+        .react-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 6px 14px; font-size: 14px; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
+        .react-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
+        .react-btn.reacted { background: rgba(0, 255, 204, 0.2); border-color: var(--primary); color: var(--primary); }
+
         /* DELETION */
         .btn-delete { width: 100%; padding: 12px; background: rgba(255,77,77,0.1); color: var(--danger); border: 1px solid rgba(255,77,77,0.3); border-radius: 8px; font-weight: bold; margin-top: 16px; cursor: pointer; transition: 0.2s; }
         .btn-delete:active { background: rgba(255,77,77,0.2); }
@@ -280,6 +286,9 @@
                 }
 
                 let deleteBtnHtml = isAdmin ? `<button class="btn-delete" onclick="deletePost('${p.id}')">🗑 Postni O'chirish</button>` : "";
+                
+                const reacts = p.reactions || { like: 0, dove: 0, banana: 0 };
+                const locReact = localStorage.getItem('react_' + p.id) || "";
 
                 html += `
                     <div class="post-card">
@@ -287,6 +296,13 @@
                         <div class="post-content">
                             <div class="post-date">${dateStr}</div>
                             ${p.text ? `<div class="post-text">${p.text}</div>` : ''}
+                            
+                            <div class="reaction-bar">
+                                <button class="react-btn ${locReact==='like'?'reacted':''}" onclick="reactToPost('${p.id}', 'like')">👍 <span id="cnt_like_${p.id}">${reacts.like || 0}</span></button>
+                                <button class="react-btn ${locReact==='dove'?'reacted':''}" onclick="reactToPost('${p.id}', 'dove')">🕊️ <span id="cnt_dove_${p.id}">${reacts.dove || 0}</span></button>
+                                <button class="react-btn ${locReact==='banana'?'reacted':''}" onclick="reactToPost('${p.id}', 'banana')">🍌 <span id="cnt_banana_${p.id}">${reacts.banana || 0}</span></button>
+                            </div>
+
                             ${deleteBtnHtml}
                         </div>
                     </div>
@@ -354,6 +370,28 @@
         async function deletePost(id) {
             if(!confirm("Bu postni o'chirib tashlaysizmi?")) return;
             try { await fetch('/api/posts/' + id, { method: 'DELETE' }); loadPosts(); } catch(e) {}
+        }
+
+        async function reactToPost(id, type) {
+            const lsKey = 'react_' + id;
+            if (localStorage.getItem(lsKey) === type) return; // Allqachon o'zini bosgan bo'lsa
+            
+            localStorage.setItem(lsKey, type);
+            
+            // UI optimistic update
+            const el = document.getElementById('cnt_' + type + '_' + id);
+            if(el) el.innerText = parseInt(el.innerText) + 1;
+            
+            // Fetch barcha ranglarni yangilash uchun render() chaqirmaymiz, chunki qotishni oldini olish kerak, lekin tugmalarni update qilsa arziydi
+            // Boshqa yechim: Shunchaki qaytadan render() 
+            
+            try {
+                await fetch('/api/posts/' + id + '/react', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type })
+                });
+                loadPosts(); // Backgroundda yangilash
+            } catch(e) {}
         }
 
         /* --- PARTICLES BACKGROUND (NO "V19" BRANDING) --- */
