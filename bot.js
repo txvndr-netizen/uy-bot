@@ -205,8 +205,8 @@ app.post("/api/posts/:id/react", (req, res) => {
         const post = data.posts.find(p => String(p.id) === String(req.params.id));
         
         if (post) {
-            if (!post.reactions) post.reactions = { like: 0, dove: 0, banana: 0 };
-            if (['like', 'dove', 'banana'].includes(type)) {
+            if (!post.reactions) post.reactions = { like: 0, dove: 0 };
+            if (['like', 'dove'].includes(type)) {
                 post.reactions[type] = (post.reactions[type] || 0) + 1;
             }
             saveData(data);
